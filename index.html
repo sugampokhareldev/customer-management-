@@ -8,60 +8,26 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Simple fade-in for modals */
-        .modal-fade-in {
-            animation: fadeIn 0.3s ease-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
+        .modal-fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         
         /* Toast animation */
-        .toast-show {
-            animation: slideIn 0.3s ease-out, fadeOut 0.3s ease-in 2.7s forwards;
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeOut {
-            from { opacity: 1; transform: translateY(0); }
-            90% { opacity: 1; transform: translateY(0); }
-            to { opacity: 0; transform: translateY(20px); }
-        }
+        .toast-show { animation: slideIn 0.3s ease-out, fadeOut 0.3s ease-in 2.7s forwards; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } 90% { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(20px); } }
         
         /* Custom scrollbar */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
         
         /* Card hover effects */
-        .customer-card {
-            transition: all 0.3s ease;
-        }
-        .customer-card:hover {
-            transform: translateY(-5px);
-        }
+        .customer-card { transition: all 0.3s ease; }
+        .customer-card:hover { transform: translateY(-5px); }
         
         /* Status indicators */
-        .status-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 6px;
-        }
+        .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
         .status-pending { background-color: #f59e0b; }
         .status-paid { background-color: #10b981; }
         .status-overdue { background-color: #ef4444; }
@@ -350,7 +316,6 @@
                         <label for="edit-email" class="block text-sm font-medium text-gray-600">Email</label>
                         <input type="email" id="edit-email" name="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
-                    
                     <div class="flex flex-col sm:flex-row sm:space-x-4">
                         <div class="w-full sm:w-1/2">
                             <label for="edit-price" class="block text-sm font-medium text-gray-600">Service Price (€)</label>
@@ -364,7 +329,6 @@
                             </select>
                         </div>
                     </div>
-                    
                     <div>
                         <label for="edit-recurring" class="block text-sm font-medium text-gray-600">Recurring</label>
                         <select id="edit-recurring" name="recurring" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
@@ -374,7 +338,6 @@
                             <option>Monthly</option>
                         </select>
                     </div>
-                    
                     <div class="flex flex-col sm:flex-row sm:space-x-4">
                         <div class="w-full sm:w-1/2">
                             <label for="edit-payment-status" class="block text-sm font-medium text-gray-600">Payment Status</label>
@@ -455,7 +418,7 @@
 
             // --- STATE ---
             let customers = [];
-            let selectedCustomerId = null; // This will be a STRING
+            let selectedCustomerId = null;
             let filteredCustomers = [];
 
             // --- DOM Elements ---
@@ -489,13 +452,16 @@
             async function checkAuth(response) {
                 if (response.status === 401) {
                     showToast('Session expired. Please log in again.', 'error');
+                    // Redirect to login page
                     setTimeout(() => window.location.href = '/login', 2000);
                     return new Error('Unauthorized');
                 }
                 try {
+                    // Try to get server error message
                     const err = await response.json();
                     return new Error(err.message || `Server error: ${response.status}`);
                 } catch (e) {
+                    // Fallback if no JSON error message
                     return new Error(`Server error: ${response.status}`);
                 }
             }
@@ -579,7 +545,10 @@
 
             async function loadCustomers() {
                 try {
-                    const response = await fetch(`${API_URL}/customers`);
+                    // *** FIX #1 ***
+                    const response = await fetch(`${API_URL}/customers`, {
+                        credentials: 'include'
+                    });
                     if (!response.ok) throw await checkAuth(response); 
                     customers = await response.json();
                     filterCustomers(); 
@@ -657,10 +626,12 @@
                 if (validationError) return showToast(validationError, 'error');
 
                 try {
+                    // *** FIX #2 ***
                     const response = await fetch(`${API_URL}/customers`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(newCustomerData)
+                        body: JSON.stringify(newCustomerData),
+                        credentials: 'include'
                     });
                     
                     if (!response.ok) throw await checkAuth(response);
@@ -674,10 +645,9 @@
                 }
             }
 
-            // --- Modal Open Functions (FIXED: No longer using parseInt) ---
-
+            // --- Modal Open Functions ---
             function openReminderModal(id) {
-                selectedCustomerId = id; // ID is now a string
+                selectedCustomerId = id;
                 const customer = customers.find(c => c.id === selectedCustomerId);
                 if (!customer) return;
                 document.getElementById('modal-customer-name').textContent = customer.name;
@@ -687,7 +657,7 @@
                 reminderModal.classList.remove('hidden');
             }
             function openViewModal(id) {
-                const customer = customers.find(c => c.id === id); // ID is now a string
+                const customer = customers.find(c => c.id === id);
                 if (!customer) return;
                 document.getElementById('view-name').textContent = customer.name;
                 document.getElementById('view-email').textContent = customer.email;
@@ -701,7 +671,7 @@
                 viewDetailsModal.classList.remove('hidden');
             }
             function openEditModal(id) {
-                selectedCustomerId = id; // ID is now a string
+                selectedCustomerId = id;
                 const customer = customers.find(c => c.id === selectedCustomerId);
                 if (!customer) return;
                 document.getElementById('edit-name').value = customer.name;
@@ -716,15 +686,14 @@
                 editCustomerModal.classList.remove('hidden');
             }
             function openDeleteModal(id) {
-                selectedCustomerId = id; // ID is now a string
+                selectedCustomerId = id;
                 const customer = customers.find(c => c.id === selectedCustomerId);
                 if (!customer) return;
                 deleteCustomerName.textContent = customer.name;
                 deleteConfirmModal.classList.remove('hidden');
             }
 
-            // --- Action Handlers (No changes needed) ---
-
+            // --- Action Handlers ---
             async function handleSendEmail() {
                 const optionalMessage = document.getElementById('optional-message').value;
                 if (!selectedCustomerId) return;
@@ -733,10 +702,12 @@
                 modalConfirmBtn.disabled = true;
 
                 try {
+                    // *** FIX #3 ***
                     const response = await fetch(`${API_URL}/customers/${selectedCustomerId}/remind`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: optionalMessage })
+                        body: JSON.stringify({ message: optionalMessage }),
+                        credentials: 'include'
                     });
                     
                     if (!response.ok) throw await checkAuth(response);
@@ -766,10 +737,12 @@
                 if (validationError) return showToast(validationError, 'error');
                 
                 try {
+                    // *** FIX #4 ***
                     const response = await fetch(`${API_URL}/customers/${selectedCustomerId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(updatedCustomerData)
+                        body: JSON.stringify(updatedCustomerData),
+                        credentials: 'include'
                     });
                     
                     if (!response.ok) throw await checkAuth(response);
@@ -785,8 +758,10 @@
             async function handleConfirmDelete() {
                 if (!selectedCustomerId) return;
                 try {
+                    // *** FIX #5 ***
                     const response = await fetch(`${API_URL}/customers/${selectedCustomerId}`, {
-                        method: 'DELETE'
+                        method: 'DELETE',
+                        credentials: 'include'
                     });
                     
                     if (!response.ok) throw await checkAuth(response);

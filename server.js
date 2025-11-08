@@ -49,7 +49,21 @@ const Customer = mongoose.model('Customer', customerSchema);
 
 // --- Express App Setup ---
 const app = express();
-app.use(cors());
+
+// ==========================================================
+// --- RENDER PROXY & CORS FIX ---
+// ==========================================================
+// Tell Express to trust the 'X-Forwarded-Proto' header from Render's proxy
+app.set('trust proxy', 1); 
+
+// Configure CORS to allow credentials from your live URL
+app.use(cors({
+  // *** REPLACE THIS with your actual Render URL ***
+  origin: 'https://customer-management-sm4h.onrender.com', 
+  credentials: true 
+}));
+// ==========================================================
+
 app.use(express.json()); // For parsing API JSON
 app.use(express.urlencoded({ extended: true })); // For parsing login form
 
@@ -59,7 +73,9 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production', // Will be true on Render
+    httpOnly: true, // Good practice
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Required for cross-site cookies
     maxAge: 1000 * 60 * 60 * 24 // 1 day
   }
 }));
@@ -114,7 +130,7 @@ app.post('/login', (req, res) => {
 app.get('/logout', (req, res) => {
   req.session.destroy((err) => {
     if (err) return res.redirect('/');
-    res.clearCookie('connect.sid');
+    res.clearCookie('connect.sid'); // The default session cookie name
     res.redirect('/login');
   });
 });
@@ -239,35 +255,21 @@ apiRouter.post('/customers/:id/remind', async (req, res) => {
        return priceType === 'Hourly' ? `${formattedPrice}/hr` : formattedPrice;
     };
     
-    // *** NEW HELPER FUNCTION FOR STATUS ***
     const formatStatus = (status) => {
       if (!status) return 'N/A';
-      
-      let color = '#333'; // Default text color
-      let fontWeight = 'normal';
-      
+      let color = '#333'; let fontWeight = 'normal';
       switch (status.toLowerCase()) {
-        case 'pending':
-          color = '#D97706'; // A dark yellow/orange
-          fontWeight = 'bold';
-          break;
-        case 'overdue':
-          color = '#D9534F'; // A red
-          fontWeight = 'bold';
-          break;
-        case 'paid':
-          color = '#10B981'; // A green
-          fontWeight = 'bold';
-          break;
+        case 'pending': color = '#D97706'; fontWeight = 'bold'; break;
+        case 'overdue': color = '#D9534F'; fontWeight = 'bold'; break;
+        case 'paid': color = '#10B981'; fontWeight = 'bold'; break;
       }
       return `<span style="color: ${color}; font-weight: ${fontWeight};">${status}</span>`;
     };
 
-    // --- Use the helper functions ---
     const visitDate = formatDate(customer.nextVisit);
     const serviceType = customer.recurring === 'None' ? 'One-Time Cleaning' : `${customer.recurring} Cleaning`;
     const servicePrice = formatCurrency(customer.price, customer.priceType);
-    const paymentStatusDisplay = formatStatus(customer.paymentStatus); // *** NEW ***
+    const paymentStatusDisplay = formatStatus(customer.paymentStatus);
 
     // --- HTML Email Template ---
     const emailBody = `
@@ -279,7 +281,8 @@ apiRouter.post('/customers/:id/remind', async (req, res) => {
         <ul style="list-style-type: none; padding-left: 0;">
           <li><strong>Type:</strong> ${serviceType}</li>
           <li><strong>Price:</strong> ${servicePrice}</li> 
-          <li><strong>Payment Status:</strong> ${paymentStatusDisplay}</li> </ul>
+          <li><strong>Payment Status:</strong> ${paymentStatusDisplay}</li>
+        </ul>
         
         ${customer.recurring !== 'None' ? `<p>Thank you for being part of our ${customer.recurring.toLowerCase()} service plan. We truly appreciate your continued trust in AJK Cleaners and look forward to serving you.</p>` : ''}
         
