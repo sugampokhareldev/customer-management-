@@ -56,9 +56,12 @@
                         id="password" 
                         name="password" 
                         required 
-                        class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        class="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         placeholder="••••••••"
                     >
+                    <button type="button" id="toggle-password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700">
+                        <i id="toggle-icon" class="fas fa-eye"></i>
+                    </button>
                 </div>
             </div>
 
@@ -73,15 +76,36 @@
 
     <script>
       document.addEventListener('DOMContentLoaded', () => {
-        // Check if the URL has "?error=1"
-        const urlParams = new URLSearchParams(window.location.search);
         
+        // 1. Check for login error
+        const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('error')) {
-          // If it does, find the error message div and remove the 'hidden' class
           const errorMessage = document.getElementById('error-message');
           if (errorMessage) {
             errorMessage.classList.remove('hidden');
           }
+        }
+
+        // 2. Add logic for the new password toggle button
+        const toggleButton = document.getElementById('toggle-password');
+        const toggleIcon = document.getElementById('toggle-icon');
+        const passwordInput = document.getElementById('password');
+
+        if (toggleButton && passwordInput) {
+          toggleButton.addEventListener('click', () => {
+            // Check the *type* of the input field
+            if (passwordInput.type === 'password') {
+              // If 'password', change it to 'text' and swap the icon
+              passwordInput.type = 'text';
+              toggleIcon.classList.remove('fa-eye');
+              toggleIcon.classList.add('fa-eye-slash');
+            } else {
+              // If 'text', change it back to 'password' and swap icon
+              passwordInput.type = 'password';
+              toggleIcon.classList.remove('fa-eye-slash');
+              toggleIcon.classList.add('fa-eye');
+            }
+          });
         }
       });
     </script>

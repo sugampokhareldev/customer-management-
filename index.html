@@ -14,65 +14,98 @@
     
     <style>
         /* Simple fade-in for modals */
-        .modal-fade-in {
-            animation: fadeIn 0.3s ease-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
+        .modal-fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         
         /* Toast animation */
-        .toast-show {
-            animation: slideIn 0.3s ease-out, fadeOut 0.3s ease-in 2.7s forwards;
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeOut {
-            from { opacity: 1; transform: translateY(0); }
-            90% { opacity: 1; transform: translateY(0); }
-            to { opacity: 0; transform: translateY(20px); }
-        }
+        .toast-show { animation: slideIn 0.3s ease-out, fadeOut 0.3s ease-in 2.7s forwards; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } 90% { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(20px); } }
         
         /* Custom scrollbar */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
         
         /* Card hover effects */
-        .customer-card {
-            transition: all 0.3s ease;
-        }
-        .customer-card:hover {
-            transform: translateY(-5px);
-        }
+        .customer-card { transition: all 0.3s ease; }
+        .customer-card:hover { transform: translateY(-5px); }
         
         /* Status indicators */
-        .status-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 6px;
-        }
+        .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
         .status-pending { background-color: #f59e0b; }
         .status-paid { background-color: #10b981; }
         .status-overdue { background-color: #ef4444; }
         .status-completed { background-color: #10b981; }
         .status-postponed { background-color: #f59e0b; }
+
+        /* Make modals scrollable on small screens */
+        .modal-body-scroll {
+            overflow-y: auto;
+            max-height: 75vh;
+        }
+
+        /* Segmented Control Styles */
+        .segmented-control {
+            display: grid;
+            grid-auto-flow: column;
+            grid-auto-columns: 1fr;
+            border-radius: 0.375rem; /* rounded-md */
+            overflow: hidden;
+            border: 1px solid #D1D5DB; /* border-gray-300 */
+        }
+        .segmented-control-btn {
+            padding: 0.5rem 0.25rem; /* py-2 px-1 */
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 500; /* font-medium */
+            color: #4B5563; /* text-gray-600 */
+            background-color: #ffffff; /* bg-white */
+            border-left: 1px solid #D1D5DB; /* border-l border-gray-300 */
+            transition: all 0.2s ease-in-out;
+            text-align: center;
+        }
+        .segmented-control-btn:first-child {
+            border-left: none;
+        }
+        .segmented-control-btn.active {
+            color: #ffffff; /* text-white */
+            background-color: #2563EB; /* bg-blue-600 */
+            border-color: #2563EB; /* border-blue-600 */
+        }
+        .segmented-control-btn:not(.active):hover {
+            background-color: #F9FAFB; /* bg-gray-50 */
+        }
+
+        /* Filter Chip Styles */
+        .filter-chip {
+            padding: 0.375rem 1rem; /* py-1.5 px-4 */
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 500; /* font-medium */
+            color: #374151; /* text-gray-700 */
+            background-color: #F3F4F6; /* bg-gray-200 */
+            border-radius: 9999px; /* rounded-full */
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            white-space: nowrap; /* Prevent wrapping */
+        }
+        .filter-chip:hover {
+            background-color: #E5E7EB; /* bg-gray-300 */
+        }
+        .filter-chip.active {
+            color: #ffffff; /* text-white */
+            background-color: #2563EB; /* bg-blue-600 */
+        }
+        /* For horizontal scrolling on mobile */
+        .filter-chip-container {
+            display: flex;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
+        }
+        .filter-chip-container::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
     </style>
 </head>
 <body class="bg-gray-50 font-sans antialiased">
@@ -103,340 +136,115 @@
             </div>
         </div>
 
-        <div class="bg-white p-4 rounded-lg shadow-sm mb-6">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-                <div class="flex-1 max-w-md">
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-search text-gray-400"></i>
-                        </div>
-                        <input type="text" id="search-customers" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Search customers...">
+        <div class="bg-white p-4 rounded-lg shadow-sm mb-6 space-y-4">
+            <div>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
                     </div>
+                    <input type="text" id="search-customers" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Search customers...">
                 </div>
-                <div class="flex space-x-2">
-                    <select id="filter-payment" class="block w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        <option value="all">All Payments</option>
-                        <option value="paid">Paid</option>
-                        <option value="pending">Pending</option>
-                        <option value="overdue">Overdue</option>
-                    </select>
-                    <select id="filter-work" class="block w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        <option value="all">All Work Status</option>
-                        <option value="completed">Completed</option>
-                        <option value="pending">Pending</option>
-                        <option value="postponed">Postponed</option>
-                    </select>
-                    <button id="clear-filters" class="px-4 py-2 bg-gray-200 text-gray-700 font-medium rounded-md hover:bg-gray-300 transition duration-200">
-                        Clear
-                    </button>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-600 mb-2">Payment Status</label>
+                <div id="payment-filter-chips" class="filter-chip-container space-x-2 pb-2">
+                    <button class="filter-chip active" data-filter-group="payment" data-value="all">All</button>
+                    <button class="filter-chip" data-filter-group="payment" data-value="paid">Paid</button>
+                    <button class="filter-chip" data-filter-group="payment" data-value="pending">Pending</button>
+                    <button class="filter-chip" data-filter-group="payment" data-value="overdue">Overdue</button>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-600 mb-2">Work Status</label>
+                <div id="work-filter-chips" class="filter-chip-container space-x-2 pb-2">
+                    <button class="filter-chip active" data-filter-group="work" data-value="all">All</button>
+                    <button class="filter-chip" data-filter-group="work" data-value="completed">Completed</button>
+                    <button class="filter-chip" data-filter-group="work" data-value="pending">Pending</button>
+                    <button class="filter-chip" data-filter-group="work" data-value="postponed">Postponed</button>
                 </div>
             </div>
         </div>
 
-        <div class="flex flex-col lg:flex-row lg:space-x-8">
-
-            <div class="lg:w-1/3 w-full bg-white p-6 rounded-lg shadow-lg mb-8 lg:mb-0 lg:sticky lg:top-8 self-start">
-                <h2 class="text-2xl font-semibold text-gray-700 mb-4 flex items-center">
-                    <i class="fas fa-user-plus text-blue-500 mr-2"></i>
-                    Add New Customer
+        <div class="w-full">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-2xl font-semibold text-gray-700 flex items-center">
+                    <i class="fas fa-users text-blue-500 mr-2"></i>
+                    Customer List
                 </h2>
-                <form id="add-customer-form" class="space-y-4">
-                    <div>
-                        <label for="name" class="block text-sm font-medium text-gray-600">Name</label>
-                        <input type="text" id="name" name="name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label for="email" class="block text-sm font-medium text-gray-600">Email</label>
-                        <input type="email" id="email" name="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    
-                    <div class="flex flex-col sm:flex-row sm:space-x-4">
-                        <div class="w-full sm:w-1/2">
-                            <label for="price" class="block text-sm font-medium text-gray-600">Service Price (€)</label>
-                            <input type="number" id="price" name="price" min="0" step="0.01" placeholder="e.g., 150.00" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        <div class="w-full sm:w-1/2 mt-4 sm:mt-0">
-                            <label for="price-type" class="block text-sm font-medium text-gray-600">Price Type</label>
-                            <select id="price-type" name="price-type" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                <option>Fixed</option>
-                                <option>Hourly</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label for="recurring" class="block text-sm font-medium text-gray-600">Recurring</label>
-                        <select id="recurring" name="recurring" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            <option>None</option>
-                            <option>Weekly</option>
-                            <option>Bi-weekly</option>
-                            <option>Monthly</option>
-                        </select>
-                    </div>
-
-                    <div class="flex flex-col sm:flex-row sm:space-x-4">
-                        <div class="w-full sm:w-1/2">
-                            <label for="payment-status" class="block text-sm font-medium text-gray-600">Payment Status</label>
-                            <select id="payment-status" name="payment-status" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                <option>Pending</option>
-                                <option>Paid</option>
-                                <option>Overdue</option>
-                            </select>
-                        </div>
-                        <div class="w-full sm:w-1/2 mt-4 sm:mt-0">
-                            <label for="work-status" class="block text-sm font-medium text-gray-600">Work Status</label>
-                            <select id="work-status" name="work-status" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                <option>Pending</option>
-                                <option>Completed</option>
-                                <option>Postponed</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-col sm:flex-row sm:space-x-4">
-                        <div class="w-full sm:w-1/2">
-                            <label for="next-visit" class="block text-sm font-medium text-gray-600">Next Visit Date</label>
-                            <input type="date" id="next-visit" name="next-visit" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        <div class="w-full sm:w-1/2 mt-4 sm:mt-0">
-                            <label for="last-payment" class="block text-sm font-medium text-gray-600">Last Payment Date</label>
-                            <input type="date" id="last-payment" name="last-payment" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 flex items-center justify-center">
-                        <i class="fas fa-plus-circle mr-2"></i>
-                        Add Customer
-                    </button>
-                </form>
+                <div class="text-sm text-gray-500" id="customer-count">Showing 0 customers</div>
             </div>
-
-            <div class="lg:w-2/3 w-full">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-2xl font-semibold text-gray-700 flex items-center">
-                        <i class="fas fa-users text-blue-500 mr-2"></i>
-                        Customer List
-                    </h2>
-                    <div class="text-sm text-gray-500" id="customer-count">Showing 0 customers</div>
-                </div>
-                
-                <div id="customer-card-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    <div id="no-customers-msg" class="hidden col-span-3 text-center py-12">
-                        <i class="fas fa-users text-gray-300 text-5xl mb-4"></i>
-                        <h3 class="text-xl font-medium text-gray-500 mb-2">No customers found</h3>
-                        <p class="text-gray-400">Add your first customer using the form</p>
-                    </div>
+            
+            <div id="customer-card-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div id="no-customers-msg" class="hidden col-span-full text-center py-12">
+                    <i class="fas fa-users text-gray-300 text-5xl mb-4"></i>
+                    <h3 class="text-xl font-medium text-gray-500 mb-2">No customers found</h3>
+                    <p class="text-gray-400">Tap the <i class="fas fa-plus-circle text-blue-500"></i> button to add your first customer</p>
                 </div>
             </div>
+        </div>
+    </div>
 
+    <button id="open-add-modal-btn" class="fixed z-40 bottom-6 right-6 bg-blue-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-110 hover:bg-blue-700">
+        <i class="fas fa-plus text-2xl"></i>
+    </button>
+
+    <div id="add-customer-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-lg mx-auto modal-fade-in">
+            <div class="flex justify-between items-center p-5 border-b border-gray-200"><h3 class="text-xl font-semibold text-gray-800 flex items-center"><i class="fas fa-user-plus text-blue-500 mr-2"></i>Add New Customer</h3><button class="modal-close-btn text-gray-400 hover:text-gray-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>
+            <form id="add-customer-form"><div class="p-6 space-y-4 modal-body-scroll custom-scrollbar"><div><label for="name" class="block text-sm font-medium text-gray-600">Name</label><input type="text" id="name" name="name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div><label for="email" class="block text-sm font-medium text-gray-600">Email</label><input type="email" id="email" name="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label for="price" class="block text-sm font-medium text-gray-600">Service Price (€)</label><input type="number" id="price" name="price" min="0" step="0.01" placeholder="e.g., 150.00" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label class="block text-sm font-medium text-gray-600">Price Type</label><input type="hidden" name="price-type" id="add-price-type" value="Fixed"><div class="segmented-control mt-1" data-control-group-for="add-price-type"><button type="button" class="segmented-control-btn active" data-value="Fixed">Fixed</button><button type="button" class="segmented-control-btn" data-value="Hourly">Hourly</button></div></div></div><div><label class="block text-sm font-medium text-gray-600">Recurring</label><input type="hidden" name="recurring" id="add-recurring" value="None"><div class="segmented-control mt-1" data-control-group-for="add-recurring"><button type="button" class="segmented-control-btn active" data-value="None">None</button><button type="button" class="segmented-control-btn" data-value="Weekly">Weekly</button><button type="button" class="segmented-control-btn" data-value="Bi-weekly">Bi-weekly</button><button type="button" class="segmented-control-btn" data-value="Monthly">Monthly</button></div></div><div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label class="block text-sm font-medium text-gray-600">Payment Status</label><input type="hidden" name="payment-status" id="add-payment-status" value="Pending"><div class="segmented-control mt-1" data-control-group-for="add-payment-status"><button type="button" class="segmented-control-btn active" data-value="Pending">Pending</button><button type="button" class="segmented-control-btn" data-value="Paid">Paid</button><button type="button" class="segmented-control-btn" data-value="Overdue">Overdue</button></div></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label class="block text-sm font-medium text-gray-600">Work Status</label><input type="hidden" name="work-status" id="add-work-status" value="Pending"><div class="segmented-control mt-1" data-control-group-for="add-work-status"><button type="button" class="segmented-control-btn active" data-value="Pending">Pending</button><button type="button" class="segmented-control-btn" data-value="Completed">Completed</button><button type="button" class="segmented-control-btn" data-value="Postponed">Postponed</button></div></div></div><div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label for="next-visit" class="block text-sm font-medium text-gray-600">Next Visit Date</label><input type="date" id="next-visit" name="next-visit" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label for="last-payment" class="block text-sm font-medium text-gray-600">Last Payment Date</label><input type="date" id="last-payment" name="last-payment" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div></div></div><div class="flex justify-end items-center p-5 border-t border-gray-200 bg-gray-50 rounded-b-lg"><button type="button" class="modal-cancel-btn px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">Cancel</button><button type="submit" class="px-5 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-md hover:bg-blue-700 transition duration-200 flex items-center"><i class="fas fa-plus-circle mr-2"></i>Add Customer</button></div></form>
         </div>
     </div>
 
     <div id="reminder-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4">
         <div class="bg-white rounded-lg shadow-2xl w-full max-w-md mx-auto modal-fade-in">
-            <div class="flex justify-between items-center p-5 border-b border-gray-200">
-                <h3 class="text-xl font-semibold text-gray-800 flex items-center">
-                    <i class="fas fa-envelope text-blue-500 mr-2"></i>
-                    Send Service Reminder
-                </h3>
-                <button class="modal-close-btn text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
+            <div class="flex justify-between items-center p-5 border-b border-gray-200"><h3 class="text-xl font-semibold text-gray-800 flex items-center"><i class="fas fa-envelope text-blue-500 mr-2"></i>Send Service Reminder</h3><button class="modal-close-btn text-gray-400 hover:text-gray-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>
             <div class="p-6 space-y-4">
-                <div class="bg-blue-50 p-4 rounded-lg">
-                    <div class="flex items-center mb-2">
-                        <i class="fas fa-user text-blue-500 mr-2"></i>
-                        <span class="font-medium">Customer:</span>
-                    </div>
-                    <p id="modal-customer-name" class="text-gray-700 font-semibold"></p>
-                    <p id="modal-customer-email" class="text-gray-600 text-sm"></p>
-                </div>
-                <div class="bg-yellow-50 p-4 rounded-lg">
-                    <div class="flex items-center mb-2">
-                        <i class="fas fa-calendar-alt text-yellow-500 mr-2"></i>
-                        <span class="font-medium">Service Date:</span>
-                    </div>
-                    <p id="modal-visit-date" class="text-gray-700 font-semibold"></p>
-                </div>
-                <div>
-                    <label for="optional-message" class="block text-sm font-medium text-gray-600 mb-1">Optional Message</label>
-                    <textarea id="optional-message" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Add a personalized message..."></textarea>
-                </div>
+                <div class="bg-blue-50 p-4 rounded-lg"><div class="flex items-center mb-2"><i class="fas fa-user text-blue-500 mr-2"></i><span class="font-medium">Customer:</span></div><p id="modal-customer-name" class="text-gray-700 font-semibold"></p><p id="modal-customer-email" class="text-gray-600 text-sm"></p></div>
+                <div class="bg-yellow-50 p-4 rounded-lg"><div class="flex items-center mb-2"><i class="fas fa-calendar-alt text-yellow-500 mr-2"></i><span class="font-medium">Service Date:</span></div><p id="modal-visit-date" class="text-gray-700 font-semibold"></p></div>
+                <div><label for="optional-message" class="block text-sm font-medium text-gray-600 mb-1">Optional Message</label><textarea id="optional-message" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Add a personalized message..."></textarea></div>
             </div>
             <div class="flex justify-end items-center p-5 border-t border-gray-200 bg-gray-50 rounded-b-lg space-x-3">
-                <button class="modal-cancel-btn px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">
-                    Cancel
-                </button>
-                <button id="modal-confirm-btn" class="px-5 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-md hover:bg-blue-700 transition duration-200 flex items-center">
-                    <i class="fas fa-paper-plane mr-2"></i>
-                    Send Email
-                </button>
+                <button class="modal-cancel-btn px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">Cancel</button>
+                <button id="modal-confirm-btn" class="px-5 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-md hover:bg-blue-700 transition duration-200 flex items-center"><i class="fas fa-paper-plane mr-2"></i>Send Email</button>
             </div>
         </div>
     </div>
 
     <div id="view-details-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4">
         <div class="bg-white rounded-lg shadow-2xl w-full max-w-lg mx-auto modal-fade-in">
-            <div class="flex justify-between items-center p-5 border-b border-gray-200">
-                <h3 class="text-xl font-semibold text-gray-800 flex items-center">
-                    <i class="fas fa-id-card text-blue-500 mr-2"></i>
-                    Customer Details
-                </h3>
-                <button class="modal-close-btn text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            <div class="p-6 space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="col-span-1 sm:col-span-2">
-                        <label class="block text-sm font-medium text-gray-500">Name</label>
-                        <p id="view-name" class="mt-1 text-lg font-semibold text-gray-900"></p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500">Email</label>
-                        <p id="view-email" class="mt-1 text-sm text-gray-800"></p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500">Next Visit Date</label>
-                        <p id="view-next-visit" class="mt-1 text-sm text-gray-800"></p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500">Service Price</label>
-                        <p id="view-price" class="mt-1 text-lg font-semibold text-blue-600"></p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500">Price Type</label>
-                        <p id="view-price-type" class="mt-1 text-sm text-gray-800"></p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500">Recurring</label>
-                        <p id="view-recurring" class="mt-1 text-sm font-medium text-gray-800"></p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500">Payment Status</label>
-                        <p id="view-payment-status" class="mt-1 text-sm text-gray-800"></p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500">Work Status</label>
-                        <p id="view-work-status" class="mt-1 text-sm text-gray-800"></p>
-                    </div>
-                    <div class="col-span-1 sm:col-span-2">
-                        <label class="block text-sm font-medium text-gray-500">Last Payment Date</label>
-                        <p id="view-last-payment" class="mt-1 text-sm text-gray-800"></p>
-                    </div>
-                </div>
-            </div>
-            <div class="flex justify-end items-center p-5 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-                <button class="modal-cancel-btn px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">
-                    Close
-                </button>
-            </div>
+            <div class="flex justify-between items-center p-5 border-b border-gray-200"><h3 class="text-xl font-semibold text-gray-800 flex items-center"><i class="fas fa-id-card text-blue-500 mr-2"></i>Customer Details</h3><button class="modal-close-btn text-gray-400 hover:text-gray-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>
+            <div class="p-6 space-y-4"><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><div class="col-span-1 sm:col-span-2"><label class="block text-sm font-medium text-gray-500">Name</label><p id="view-name" class="mt-1 text-lg font-semibold text-gray-900"></p></div><div><label class="block text-sm font-medium text-gray-500">Email</label><p id="view-email" class="mt-1 text-sm text-gray-800"></p></div><div><label class="block text-sm font-medium text-gray-500">Next Visit Date</label><p id="view-next-visit" class="mt-1 text-sm text-gray-800"></p></div><div><label class="block text-sm font-medium text-gray-500">Service Price</label><p id="view-price" class="mt-1 text-lg font-semibold text-blue-600"></p></div><div><label class="block text-sm font-medium text-gray-500">Price Type</label><p id="view-price-type" class="mt-1 text-sm text-gray-800"></p></div><div><label class="block text-sm font-medium text-gray-600">Recurring</label><p id="view-recurring" class="mt-1 text-sm font-medium text-gray-800"></p></div><div><label class="block text-sm font-medium text-gray-500">Payment Status</label><p id="view-payment-status" class="mt-1 text-sm text-gray-800"></p></div><div><label class="block text-sm font-medium text-gray-500">Work Status</label><p id="view-work-status" class="mt-1 text-sm text-gray-800"></p></div><div class="col-span-1 sm:col-span-2"><label class="block text-sm font-medium text-gray-500">Last Payment Date</label><p id="view-last-payment" class="mt-1 text-sm text-gray-800"></p></div></div></div>
+            <div class="flex justify-end items-center p-5 border-t border-gray-200 bg-gray-50 rounded-b-lg"><button class="modal-cancel-btn px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">Close</button></div>
         </div>
     </div>
 
     <div id="edit-customer-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4">
-        <div class="bg-white rounded-lg shadow-2xl w-full max-w-lg mx-auto modal-fade-in overflow-y-auto custom-scrollbar" style="max-height: 90vh;">
-            <div class="flex justify-between items-center p-5 border-b border-gray-200 sticky top-0 bg-white">
-                <h3 class="text-xl font-semibold text-gray-800 flex items-center">
-                    <i class="fas fa-edit text-blue-500 mr-2"></i>
-                    Edit Customer
-                </h3>
-                <button class="modal-close-btn text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            <form id="edit-customer-form">
-                <div class="p-6 space-y-4">
-                    <div>
-                        <label for="edit-name" class="block text-sm font-medium text-gray-600">Name</label>
-                        <input type="text" id="edit-name" name="name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label for="edit-email" class="block text-sm font-medium text-gray-600">Email</label>
-                        <input type="email" id="edit-email" name="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    <div class="flex flex-col sm:flex-row sm:space-x-4">
-                        <div class="w-full sm:w-1/2">
-                            <label for="edit-price" class="block text-sm font-medium text-gray-600">Service Price (€)</label>
-                            <input type="number" id="edit-price" name="price" min="0" step="0.01" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        <div class="w-full sm:w-1/2 mt-4 sm:mt-0">
-                            <label for="edit-price-type" class="block text-sm font-medium text-gray-600">Price Type</label>
-                            <select id="edit-price-type" name="price-type" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                <option>Fixed</option>
-                                <option>Hourly</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label for="edit-recurring" class="block text-sm font-medium text-gray-600">Recurring</label>
-                        <select id="edit-recurring" name="recurring" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            <option>None</option>
-                            <option>Weekly</option>
-                            <option>Bi-weekly</option>
-                            <option>Monthly</option>
-                        </select>
-                    </div>
-                    <div class="flex flex-col sm:flex-row sm:space-x-4">
-                        <div class="w-full sm:w-1/2">
-                            <label for="edit-payment-status" class="block text-sm font-medium text-gray-600">Payment Status</label>
-                            <select id="edit-payment-status" name="payment-status" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                <option>Pending</option>
-                                <option>Paid</option>
-                                <option>Overdue</option>
-                            </select>
-                        </div>
-                        <div class="w-full sm:w-1/2 mt-4 sm:mt-0">
-                            <label for="edit-work-status" class="block text-sm font-medium text-gray-600">Work Status</label>
-                            <select id="edit-work-status" name="work-status" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                <option>Pending</option>
-                                <option>Completed</option>
-                                <option>Postponed</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="flex flex-col sm:flex-row sm:space-x-4">
-                        <div class="w-full sm:w-1/2">
-                            <label for="edit-next-visit" class="block text-sm font-medium text-gray-600">Next Visit Date</label>
-                            <input type="date" id="edit-next-visit" name="next-visit" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        <div class="w-full sm:w-1/2 mt-4 sm:mt-0">
-                            <label for="edit-last-payment" class="block text-sm font-medium text-gray-600">Last Payment Date</label>
-                            <input type="date" id="edit-last-payment" name="last-payment" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                    </div>
-                </div>
-                <div class="flex justify-end items-center p-5 border-t border-gray-200 bg-gray-50 rounded-b-lg sticky bottom-0">
-                    <button type="button" class="modal-cancel-btn px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">
-                        Cancel
-                    </button>
-                    <button type="submit" class="px-5 py-2 bg-green-600 text-white font-semibold rounded-md shadow-md hover:bg-green-700 transition duration-200 flex items-center">
-                        <i class="fas fa-save mr-2"></i>
-                        Save Changes
-                    </button>
-                </div>
-            </form>
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-lg mx-auto modal-fade-in">
+            <div class="flex justify-between items-center p-5 border-b border-gray-200 sticky top-0 bg-white"><h3 class="text-xl font-semibold text-gray-800 flex items-center"><i class="fas fa-edit text-blue-500 mr-2"></i>Edit Customer</h3><button class="modal-close-btn text-gray-400 hover:text-gray-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>
+            <form id="edit-customer-form"><div class="p-6 space-y-4 modal-body-scroll custom-scrollbar"><div><label for="edit-name" class="block text-sm font-medium text-gray-600">Name</label><input type="text" id="edit-name" name="name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div><label for="edit-email" class="block text-sm font-medium text-gray-600">Email</label><input type="email" id="edit-email" name="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label for="edit-price" class="block text-sm font-medium text-gray-600">Service Price (€)</label><input type="number" id="edit-price" name="price" min="0" step="0.01" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label class="block text-sm font-medium text-gray-600">Price Type</label><input type="hidden" name="price-type" id="edit-price-type"><div class="segmented-control mt-1" data-control-group-for="edit-price-type"><button type="button" class="segmented-control-btn" data-value="Fixed">Fixed</button><button type="button" class="segmented-control-btn" data-value="Hourly">Hourly</button></div></div></div><div><label class="block text-sm font-medium text-gray-600">Recurring</label><input type="hidden" name="recurring" id="edit-recurring"><div class="segmented-control mt-1" data-control-group-for="edit-recurring"><button type="button" class="segmented-control-btn" data-value="None">None</button><button type="button" class="segmented-control-btn" data-value="Weekly">Weekly</button><button type="button" class="segmented-control-btn" data-value="Bi-weekly">Bi-weekly</button><button type="button" class="segmented-control-btn" data-value="Monthly">Monthly</button></div></div><div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label class="block text-sm font-medium text-gray-600">Payment Status</label><input type="hidden" name="payment-status" id="edit-payment-status"><div class="segmented-control mt-1" data-control-group-for="edit-payment-status"><button type="button" class="segmented-control-btn" data-value="Pending">Pending</button><button type="button" class="segmented-control-btn" data-value="Paid">Paid</button><button type="button" class="segmented-control-btn" data-value="Overdue">Overdue</button></div></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label class="block text-sm font-medium text-gray-600">Work Status</label><input type="hidden" name="work-status" id="edit-work-status"><div class="segmented-control mt-1" data-control-group-for="edit-work-status"><button type="button" class="segmented-control-btn" data-value="Pending">Pending</button><button type="button" class="segmented-control-btn" data-value="Completed">Completed</button><button type="button" class="segmented-control-btn" data-value="Postponed">Postponed</button></div></div></div><div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label for="edit-next-visit" class="block text-sm font-medium text-gray-600">Next Visit Date</label><input type="date" id="edit-next-visit" name="next-visit" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label for="edit-last-payment" class="block text-sm font-medium text-gray-600">Last Payment Date</label><input type="date" id="edit-last-payment" name="last-payment" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div></div></div><div class="flex justify-end items-center p-5 border-t border-gray-200 bg-gray-50 rounded-b-lg sticky bottom-0"><button type="button" class="modal-cancel-btn px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">Cancel</button><button type="submit" class="px-5 py-2 bg-green-600 text-white font-semibold rounded-md shadow-md hover:bg-green-700 transition duration-200 flex items-center"><i class="fas fa-save mr-2"></i>Save Changes</button></div></form>
         </div>
     </div>
 
     <div id="delete-confirm-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-sm mx-auto modal-fade-in"><div class="p-6 text-center"><div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i></div><h3 class="text-xl font-semibold text-gray-800 mb-2">Are you sure?</h3><p class="text-gray-600 mb-6">Do you really want to delete <strong id="delete-customer-name"></strong>? This process cannot be undone.</p><div class="flex justify-center items-center space-x-4"><button id="delete-cancel-btn" class="px-6 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">Cancel</button><button id="delete-confirm-btn" class="px-6 py-2 bg-red-600 text-white font-semibold rounded-md shadow-md hover:bg-red-700 transition duration-200 flex items-center"><i class="fas fa-trash mr-2"></i>Delete</button></div></div></div>
+    </div>
+
+    <div id="complete-job-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4">
         <div class="bg-white rounded-lg shadow-2xl w-full max-w-sm mx-auto modal-fade-in">
             <div class="p-6 text-center">
-                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check-circle text-green-500 text-2xl"></i>
                 </div>
-                <h3 class="text-xl font-semibold text-gray-800 mb-2">Are you sure?</h3>
-                <p class="text-gray-600 mb-6">
-                    Do you really want to delete <strong id="delete-customer-name"></strong>? This process cannot be undone.
-                </p>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Confirm Completion</h3>
+                <p class="text-gray-600 mb-6">Mark job for <strong id="complete-customer-name"></strong> as complete and schedule next visit?</p>
                 <div class="flex justify-center items-center space-x-4">
-                    <button id="delete-cancel-btn" class="px-6 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">
+                    <button class="modal-cancel-btn px-6 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">
                         Cancel
                     </button>
-                    <button id="delete-confirm-btn" class="px-6 py-2 bg-red-600 text-white font-semibold rounded-md shadow-md hover:bg-red-700 transition duration-200 flex items-center">
-                        <i class="fas fa-trash mr-2"></i>
-                        Delete
+                    <button id="complete-confirm-btn" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-md shadow-md hover:bg-green-700 transition duration-200 flex items-center">
+                        <i class="fas fa-check mr-2"></i>Confirm
                     </button>
                 </div>
             </div>
@@ -444,10 +252,7 @@
     </div>
 
     <div id="toast-notification" class="hidden fixed bottom-5 right-5 z-50 px-5 py-3 rounded-lg shadow-lg text-white">
-        <div class="flex items-center">
-            <i id="toast-icon" class="fas fa-info-circle mr-2"></i>
-            <span id="toast-message"></span>
-        </div>
+        <div class="flex items-center"><i id="toast-icon" class="fas fa-info-circle mr-2"></i><span id="toast-message"></span></div>
     </div>
 
     <script>
@@ -460,22 +265,25 @@
             let customers = [];
             let selectedCustomerId = null;
             let filteredCustomers = [];
+            let activePaymentFilter = 'all';
+            let activeWorkFilter = 'all';
 
             // --- DOM Elements ---
-            const addForm = document.getElementById('add-customer-form');
             const cardGrid = document.getElementById('customer-card-grid');
             const noCustomersMsg = document.getElementById('no-customers-msg');
             const toast = document.getElementById('toast-notification');
             const toastMessage = document.getElementById('toast-message');
             const toastIcon = document.getElementById('toast-icon');
             const searchInput = document.getElementById('search-customers');
-            const filterPayment = document.getElementById('filter-payment');
-            const filterWork = document.getElementById('filter-work');
-            const clearFiltersBtn = document.getElementById('clear-filters');
             const customerCount = document.getElementById('customer-count');
             const totalCustomers = document.getElementById('total-customers');
             const completedJobs = document.getElementById('completed-jobs');
             const pendingPayments = document.getElementById('pending-payments');
+            
+            // Modal Elements
+            const openAddModalBtn = document.getElementById('open-add-modal-btn');
+            const addCustomerModal = document.getElementById('add-customer-modal');
+            const addForm = document.getElementById('add-customer-form');
             const reminderModal = document.getElementById('reminder-modal');
             const modalConfirmBtn = document.getElementById('modal-confirm-btn');
             const viewDetailsModal = document.getElementById('view-details-modal');
@@ -485,6 +293,12 @@
             const deleteConfirmBtn = document.getElementById('delete-confirm-btn');
             const deleteCancelBtn = document.getElementById('delete-cancel-btn');
             const deleteCustomerName = document.getElementById('delete-customer-name');
+            
+            // ⭐ NEW: "Complete Job" Modal Elements
+            const completeJobModal = document.getElementById('complete-job-modal');
+            const completeConfirmBtn = document.getElementById('complete-confirm-btn');
+            const completeCustomerName = document.getElementById('complete-customer-name');
+
             const allModalCloseBtns = document.querySelectorAll('.modal-close-btn');
             const allModalCancelBtns = document.querySelectorAll('.modal-cancel-btn');
 
@@ -492,41 +306,49 @@
             async function checkAuth(response) {
                 if (response.status === 401) {
                     showToast('Session expired. Please log in again.', 'error');
-                    // Redirect to login page
                     setTimeout(() => window.location.href = '/login', 2000);
                     return new Error('Unauthorized');
                 }
                 try {
-                    // Try to get server error message
                     const err = await response.json();
                     return new Error(err.message || `Server error: ${response.status}`);
                 } catch (e) {
-                    // Fallback if no JSON error message
                     return new Error(`Server error: ${response.status}`);
                 }
             }
             
             // --- HELPER FUNCTIONS ---
+            
             function formatDate(dateString) {
                 if (!dateString) return 'N/A';
                 const date = new Date(dateString);
                 return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
             }
+
             function formatCurrency(value, priceType) {
                 if (value == null || isNaN(Number(value))) return 'N/A';
                 const formattedPrice = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(value);
                 return priceType === 'Hourly' ? `${formattedPrice}/hr` : formattedPrice;
             }
+
             function getStatusBadge(status) {
                 const baseClass = 'px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full items-center';
                 if (!status) return `${baseClass} bg-gray-100 text-gray-800`;
+                
                 switch (status.toLowerCase()) {
-                    case 'paid': case 'completed': return `${baseClass} bg-green-100 text-green-800`;
-                    case 'pending': case 'postponed': return `${baseClass} bg-yellow-100 text-yellow-800`;
-                    case 'overdue': return `${baseClass} bg-red-100 text-red-800`;
-                    default: return `${baseClass} bg-gray-100 text-gray-800`;
+                    case 'paid': 
+                    case 'completed': 
+                        return `${baseClass} bg-green-100 text-green-800`;
+                    case 'pending': 
+                    case 'postponed': 
+                        return `${baseClass} bg-yellow-100 text-yellow-800`;
+                    case 'overdue': 
+                        return `${baseClass} bg-red-100 text-red-800`;
+                    default: 
+                        return `${baseClass} bg-gray-100 text-gray-800`;
                 }
             }
+
             function getStatusDot(status) {
                 if (!status) return '<span class="status-dot status-pending"></span>';
                 switch (status.toLowerCase()) {
@@ -536,62 +358,177 @@
                     default: return '<span class="status-dot status-pending"></span>';
                 }
             }
+
             function showToast(message, type = 'success') {
                 toastMessage.textContent = message;
                 toast.classList.remove('bg-green-600', 'bg-red-600', 'bg-blue-600', 'hidden');
-                if (type === 'success') { toast.classList.add('bg-green-600'); toastIcon.className = 'fas fa-check-circle mr-2'; }
-                else if (type === 'error') { toast.classList.add('bg-red-600'); toastIcon.className = 'fas fa-exclamation-triangle mr-2'; }
-                else { toast.classList.add('bg-blue-600'); toastIcon.className = 'fas fa-info-circle mr-2'; }
+                if (type === 'success') { 
+                    toast.classList.add('bg-green-600'); 
+                    toastIcon.className = 'fas fa-check-circle mr-2'; 
+                } else if (type === 'error') { 
+                    toast.classList.add('bg-red-600'); 
+                    toastIcon.className = 'fas fa-exclamation-triangle mr-2'; 
+                } else { 
+                    toast.classList.add('bg-blue-600'); 
+                    toastIcon.className = 'fas fa-info-circle mr-2'; 
+                }
                 toast.classList.add('toast-show');
-                setTimeout(() => { toast.classList.add('hidden'); toast.classList.remove('toast-show'); }, 3000);
+                setTimeout(() => { 
+                    toast.classList.add('hidden'); 
+                    toast.classList.remove('toast-show'); 
+                }, 3000);
             }
-            function hideAllModals() {
-                reminderModal.classList.add('hidden');
-                viewDetailsModal.classList.add('hidden');
-                editCustomerModal.classList.add('hidden');
-                deleteConfirmModal.classList.add('hidden');
-                selectedCustomerId = null;
-            }
+
             function validateCustomerData(customer) {
                 const today = new Date(APP_TODAY + 'T00:00:00Z').toISOString().split('T')[0];
+                // Allow today's date, but not past dates
                 if (customer.nextVisit && customer.nextVisit < today) return 'Error: Next visit date cannot be in the past.';
                 if (customer.lastPayment && customer.lastPayment > today) return 'Error: Last payment date cannot be in the future.';
                 return null;
             }
-            function setDefaultVisitDate() {
-                const today = new Date(APP_TODAY + 'T00:00:00Z');
-                today.setUTCDate(today.getUTCDate() + 7);
-                addForm.elements['next-visit'].value = today.toISOString().split('T')[0];
-            }
+
             function updateStats() {
                 totalCustomers.textContent = customers.length;
                 completedJobs.textContent = customers.filter(c => c.workStatus === 'Completed').length;
                 pendingPayments.textContent = customers.filter(c => c.paymentStatus === 'Pending' || c.paymentStatus === 'Overdue').length;
             }
+
             function filterCustomers() {
                 const searchTerm = searchInput.value.toLowerCase();
-                const paymentFilter = filterPayment.value;
-                const workFilter = filterWork.value;
+                
                 filteredCustomers = customers.filter(customer => {
-                    const matchesSearch = (customer.name && customer.name.toLowerCase().includes(searchTerm)) || (customer.email && customer.email.toLowerCase().includes(searchTerm));
-                    const matchesPayment = paymentFilter === 'all' || (customer.paymentStatus && customer.paymentStatus.toLowerCase() === paymentFilter);
-                    const matchesWork = workFilter === 'all' || (customer.workStatus && customer.workStatus.toLowerCase() === workFilter);
+                    const matchesSearch = (customer.name && customer.name.toLowerCase().includes(searchTerm)) || 
+                                          (customer.email && customer.email.toLowerCase().includes(searchTerm));
+                    
+                    const matchesPayment = activePaymentFilter === 'all' || (customer.paymentStatus && customer.paymentStatus.toLowerCase() === activePaymentFilter);
+                    const matchesWork = activeWorkFilter === 'all' || (customer.workStatus && customer.workStatus.toLowerCase() === activeWorkFilter);
+                    
                     return matchesSearch && matchesPayment && matchesWork;
                 });
                 renderCards();
+            }
+            
+            // ⭐ UPDATED: hideAllModals
+            function hideAllModals() {
+                addCustomerModal.classList.add('hidden');
+                reminderModal.classList.add('hidden');
+                viewDetailsModal.classList.add('hidden');
+                editCustomerModal.classList.add('hidden');
+                deleteConfirmModal.classList.add('hidden');
+                completeJobModal.classList.add('hidden'); // <-- NEW
+                selectedCustomerId = null;
+            }
+
+            function setDefaultVisitDate() {
+                const today = new Date(APP_TODAY + 'T00:00:00Z');
+                today.setUTCDate(today.getUTCDate() + 7);
+                addForm.elements['next-visit'].value = today.toISOString().split('T')[0];
+            }
+            
+            // --- Segmented Control Functions ---
+            
+            function initSegmentedControls() {
+                const controlGroups = document.querySelectorAll('[data-control-group-for]');
+                
+                controlGroups.forEach(group => {
+                    const hiddenInputId = group.dataset.controlGroupFor;
+                    const hiddenInput = document.getElementById(hiddenInputId);
+                    
+                    group.addEventListener('click', (e) => {
+                        if (e.target.tagName !== 'BUTTON') return;
+                        
+                        const button = e.target.closest('button');
+                        if (!button) return;
+
+                        const value = button.dataset.value;
+                        hiddenInput.value = value;
+                        
+                        group.querySelectorAll('.segmented-control-btn').forEach(btn => {
+                            btn.classList.remove('active');
+                        });
+                        button.classList.add('active');
+                    });
+                });
+            }
+
+            function setActiveSegment(hiddenInputId, value) {
+                const hiddenInput = document.getElementById(hiddenInputId);
+                if (!hiddenInput) return;
+                
+                let validValue = value;
+                hiddenInput.value = validValue;
+                
+                const group = document.querySelector(`[data-control-group-for="${hiddenInputId}"]`);
+                if (!group) return;
+
+                let found = false;
+                group.querySelectorAll('.segmented-control-btn').forEach(btn => {
+                    if (btn.dataset.value === validValue) {
+                        btn.classList.add('active');
+                        found = true;
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+
+                if (!found) {
+                    const firstButton = group.querySelector('.segmented-control-btn');
+                    if (firstButton) {
+                        firstButton.classList.add('active');
+                        hiddenInput.value = firstButton.dataset.value;
+                    }
+                }
+            }
+
+            function resetSegmentedControls(formElement) {
+                const groups = formElement.querySelectorAll('[data-control-group-for]');
+                groups.forEach(group => {
+                    const firstButton = group.querySelector('.segmented-control-btn');
+                    if (firstButton) {
+                        const defaultValue = firstButton.dataset.value;
+                        const hiddenInputId = group.dataset.controlGroupFor;
+                        setActiveSegment(hiddenInputId, defaultValue);
+                    }
+                });
+            }
+
+            // --- Filter Chip Function ---
+            function initFilterChips() {
+                const chipContainers = [
+                    document.getElementById('payment-filter-chips'),
+                    document.getElementById('work-filter-chips')
+                ];
+
+                chipContainers.forEach(container => {
+                    container.addEventListener('click', (e) => {
+                        if (e.target.tagName !== 'BUTTON') return;
+
+                        const button = e.target;
+                        const group = button.dataset.filterGroup;
+                        const value = button.dataset.value;
+
+                        if (group === 'payment') {
+                            activePaymentFilter = value;
+                        } else if (group === 'work') {
+                            activeWorkFilter = value;
+                        }
+
+                        container.querySelectorAll('.filter-chip').forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+
+                        filterCustomers();
+                    });
+                });
             }
 
             // --- CORE FUNCTIONS (API) ---
 
             async function loadCustomers() {
                 try {
-                    // *** FIX #1 ***
-                    const response = await fetch(`${API_URL}/customers`, {
-                        credentials: 'include'
-                    });
-                    if (!response.ok) throw await checkAuth(response); 
+                    const response = await fetch(`${API_URL}/customers`, { credentials: 'include' });
+                    if (!response.ok) throw await checkAuth(response);
                     customers = await response.json();
-                    filterCustomers(); 
+                    filterCustomers();
                     updateStats();
                 } catch (error) {
                     console.error(error);
@@ -602,7 +539,7 @@
             }
 
             function renderCards() {
-                cardGrid.innerHTML = ''; 
+                cardGrid.innerHTML = '';
                 if (filteredCustomers.length === 0) {
                     noCustomersMsg.classList.remove('hidden');
                     cardGrid.appendChild(noCustomersMsg);
@@ -615,25 +552,61 @@
                 filteredCustomers.forEach(customer => {
                     const card = document.createElement('div');
                     card.className = 'customer-card bg-white rounded-lg shadow-lg p-5 flex flex-col justify-between transition-all hover:shadow-xl';
+                    
                     const recurringBadge = customer.recurring !== 'None' ? `<span class="text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">${customer.recurring}</span>` : '';
+                    
                     const nextVisitDate = new Date(customer.nextVisit + 'T00:00:00Z');
                     const today = new Date(APP_TODAY + 'T00:00:00Z');
                     const daysUntilVisit = Math.ceil((nextVisitDate - today) / (1000 * 60 * 60 * 24));
                     const isUpcoming = daysUntilVisit <= 3 && daysUntilVisit >= 0;
+
+                    // --- Dynamic Primary Button ---
+                    let primaryButton = '';
+                    if (customer.workStatus === 'Pending') {
+                        primaryButton = `
+                            <button data-id="${customer.id}" class="complete-job-btn w-full mb-3 px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-md shadow-md hover:bg-green-700 transition duration-200 flex items-center justify-center">
+                                <i class="fas fa-check-circle mr-2"></i>Mark as Completed
+                            </button>
+                        `;
+                    } else {
+                        primaryButton = `
+                            <button data-id="${customer.id}" class="send-reminder-btn w-full mb-3 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-md shadow-md hover:bg-blue-700 transition duration-200 flex items-center justify-center">
+                                <i class="fas fa-envelope mr-2"></i>Send Reminder
+                            </button>
+                        `;
+                    }
                     
                     card.innerHTML = `
                         <div>
-                            <div class="flex justify-between items-start mb-2"><h3 class="text-xl font-semibold text-gray-900 truncate" title="${customer.name}">${customer.name}</h3>${recurringBadge}</div>
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="text-xl font-semibold text-gray-900 truncate" title="${customer.name}">${customer.name}</h3>
+                                ${recurringBadge}
+                            </div>
                             <p class="text-sm text-gray-500 mb-4 truncate" title="${customer.email}">${customer.email}</p>
                             <div class="mb-4 space-y-2">
-                                <div class="flex justify-between items-center"><span class="text-sm font-medium text-gray-600">Price:</span><span class="text-lg font-bold text-blue-600">${formatCurrency(customer.price, customer.priceType)}</span></div>
-                                <div class="flex justify-between items-center"><span class="text-sm font-medium text-gray-600">Payment:</span><span class="${getStatusBadge(customer.paymentStatus)}">${getStatusDot(customer.paymentStatus)}${customer.paymentStatus}</span></div>
-                                <div class="flex justify-between items-center"><span class="text-sm font-medium text-gray-600">Work:</span><span class="${getStatusBadge(customer.workStatus)}">${getStatusDot(customer.workStatus)}${customer.workStatus}</span></div>
-                                <div class="flex justify-between items-center"><span class="text-sm font-medium text-gray-600">Next Visit:</span><span class="text-sm font-semibold ${isUpcoming ? 'text-red-600' : 'text-gray-800'}">${formatDate(customer.nextVisit)}${isUpcoming ? '<i class="fas fa-bell ml-1 text-red-500"></i>' : ''}</span></div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-600">Price:</span>
+                                    <span class="text-lg font-bold text-blue-600">${formatCurrency(customer.price, customer.priceType)}</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-600">Payment:</span>
+                                    <span class="${getStatusBadge(customer.paymentStatus)}">${getStatusDot(customer.paymentStatus)}${customer.paymentStatus || 'N/A'}</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-600">Work:</span>
+                                    <span class="${getStatusBadge(customer.workStatus)}">${getStatusDot(customer.workStatus)}${customer.workStatus || 'N/A'}</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-gray-600">Next Visit:</span>
+                                    <span class="text-sm font-semibold ${isUpcoming ? 'text-red-600' : 'text-gray-800'}">
+                                        ${formatDate(customer.nextVisit)}
+                                        ${isUpcoming ? '<i class="fas fa-bell ml-1 text-red-500"></i>' : ''}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                         <div class="mt-4 pt-4 border-t border-gray-100">
-                            <button data-id="${customer.id}" class="send-reminder-btn w-full mb-3 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-md shadow-md hover:bg-blue-700 transition duration-200 flex items-center justify-center"><i class="fas fa-envelope mr-2"></i>Send Reminder</button>
+                            ${primaryButton}
                             <div class="flex space-x-2">
                                 <button data-id="${customer.id}" class="view-details-btn w-full px-3 py-2 bg-gray-200 text-gray-700 text-sm font-semibold rounded-md hover:bg-gray-300 transition duration-200 flex items-center justify-center"><i class="fas fa-eye mr-1"></i> View</button>
                                 <button data-id="${customer.id}" class="edit-customer-btn w-full px-3 py-2 bg-gray-200 text-gray-700 text-sm font-semibold rounded-md hover:bg-gray-300 transition duration-200 flex items-center justify-center"><i class="fas fa-edit mr-1"></i> Edit</button>
@@ -646,6 +619,9 @@
             }
 
             function attachCardButtonListeners() {
+                // ⭐ UPDATED to call the new modal function
+                document.querySelectorAll('.complete-job-btn').forEach(btn => btn.addEventListener('click', (e) => openCompleteJobModal(e.target.closest('button').dataset.id)));
+                
                 document.querySelectorAll('.send-reminder-btn').forEach(btn => btn.addEventListener('click', (e) => openReminderModal(e.target.closest('button').dataset.id)));
                 document.querySelectorAll('.view-details-btn').forEach(btn => btn.addEventListener('click', (e) => openViewModal(e.target.closest('button').dataset.id)));
                 document.querySelectorAll('.edit-customer-btn').forEach(btn => btn.addEventListener('click', (e) => openEditModal(e.target.closest('button').dataset.id)));
@@ -656,17 +632,21 @@
                 event.preventDefault();
                 const formData = new FormData(addForm);
                 const newCustomerData = {
-                    name: formData.get('name'), email: formData.get('email'),
-                    price: parseFloat(formData.get('price')) || null, priceType: formData.get('price-type'),
-                    recurring: formData.get('recurring'), paymentStatus: formData.get('payment-status'),
-                    workStatus: formData.get('work-status'), nextVisit: formData.get('next-visit'),
+                    name: formData.get('name'), 
+                    email: formData.get('email'),
+                    price: parseFloat(formData.get('price')) || null, 
+                    priceType: formData.get('price-type'),
+                    recurring: formData.get('recurring'),
+                    paymentStatus: formData.get('payment-status'),
+                    workStatus: formData.get('work-status'),
+                    nextVisit: formData.get('next-visit'),
                     lastPayment: formData.get('last-payment') || null
                 };
+                
                 const validationError = validateCustomerData(newCustomerData);
                 if (validationError) return showToast(validationError, 'error');
 
                 try {
-                    // *** FIX #2 ***
                     const response = await fetch(`${API_URL}/customers`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -678,7 +658,8 @@
 
                     await loadCustomers();
                     addForm.reset();
-                    setDefaultVisitDate();
+                    resetSegmentedControls(addForm);
+                    hideAllModals(); 
                     showToast('Customer added successfully!', 'success');
                 } catch (error) {
                     if (error.message !== 'Unauthorized') showToast(error.message, 'error');
@@ -686,6 +667,14 @@
             }
 
             // --- Modal Open Functions ---
+            
+            function openAddModal() {
+                addForm.reset();
+                resetSegmentedControls(addForm);
+                setDefaultVisitDate();
+                addCustomerModal.classList.remove('hidden');
+            }
+            
             function openReminderModal(id) {
                 selectedCustomerId = id;
                 const customer = customers.find(c => c.id === selectedCustomerId);
@@ -696,6 +685,7 @@
                 document.getElementById('optional-message').value = '';
                 reminderModal.classList.remove('hidden');
             }
+
             function openViewModal(id) {
                 const customer = customers.find(c => c.id === id);
                 if (!customer) return;
@@ -706,25 +696,30 @@
                 document.getElementById('view-recurring').textContent = customer.recurring;
                 document.getElementById('view-next-visit').textContent = formatDate(customer.nextVisit);
                 document.getElementById('view-last-payment').textContent = formatDate(customer.lastPayment);
-                document.getElementById('view-payment-status').innerHTML = `<span class="${getStatusBadge(customer.paymentStatus)}">${getStatusDot(customer.paymentStatus)}${customer.paymentStatus}</span>`;
-                document.getElementById('view-work-status').innerHTML = `<span class="${getStatusBadge(customer.workStatus)}">${getStatusDot(customer.workStatus)}${customer.workStatus}</span>`;
+                document.getElementById('view-payment-status').innerHTML = `<span class="${getStatusBadge(customer.paymentStatus)}">${getStatusDot(customer.paymentStatus)}${customer.paymentStatus || 'N/A'}</span>`;
+                document.getElementById('view-work-status').innerHTML = `<span class="${getStatusBadge(customer.workStatus)}">${getStatusDot(customer.workStatus)}${customer.workStatus || 'N/A'}</span>`;
                 viewDetailsModal.classList.remove('hidden');
             }
+            
             function openEditModal(id) {
                 selectedCustomerId = id;
                 const customer = customers.find(c => c.id === selectedCustomerId);
                 if (!customer) return;
+                
                 document.getElementById('edit-name').value = customer.name;
                 document.getElementById('edit-email').value = customer.email;
                 document.getElementById('edit-price').value = customer.price;
-                document.getElementById('edit-price-type').value = customer.priceType || 'Fixed';
-                document.getElementById('edit-recurring').value = customer.recurring;
-                document.getElementById('edit-payment-status').value = customer.paymentStatus;
-                document.getElementById('edit-work-status').value = customer.workStatus;
                 document.getElementById('edit-next-visit').value = customer.nextVisit;
                 document.getElementById('edit-last-payment').value = customer.lastPayment;
+
+                setActiveSegment('edit-price-type', customer.priceType);
+                setActiveSegment('edit-recurring', customer.recurring);
+                setActiveSegment('edit-payment-status', customer.paymentStatus);
+                setActiveSegment('edit-work-status', customer.workStatus);
+                
                 editCustomerModal.classList.remove('hidden');
             }
+
             function openDeleteModal(id) {
                 selectedCustomerId = id;
                 const customer = customers.find(c => c.id === selectedCustomerId);
@@ -732,52 +727,36 @@
                 deleteCustomerName.textContent = customer.name;
                 deleteConfirmModal.classList.remove('hidden');
             }
-
-            // --- Action Handlers ---
-            async function handleSendEmail() {
-                const optionalMessage = document.getElementById('optional-message').value;
-                if (!selectedCustomerId) return;
-                const originalText = modalConfirmBtn.innerHTML;
-                modalConfirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Sending...';
-                modalConfirmBtn.disabled = true;
-
-                try {
-                    // *** FIX #3 ***
-                    const response = await fetch(`${API_URL}/customers/${selectedCustomerId}/remind`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: optionalMessage }),
-                        credentials: 'include'
-                    });
-                    
-                    if (!response.ok) throw await checkAuth(response);
-                    
-                    const result = await response.json();
-                    hideAllModals();
-                    showToast(result.message || 'Email sent successfully!', 'success');
-                } catch (error) {
-                    if (error.message !== 'Unauthorized') showToast(error.message, 'error');
-                } finally {
-                    modalConfirmBtn.innerHTML = originalText;
-                    modalConfirmBtn.disabled = false;
-                }
+            
+            // ⭐ NEW: openCompleteJobModal
+            function openCompleteJobModal(id) {
+                selectedCustomerId = id;
+                const customer = customers.find(c => c.id === selectedCustomerId);
+                if (!customer) return;
+                
+                completeCustomerName.textContent = customer.name;
+                completeJobModal.classList.remove('hidden');
             }
 
             async function handleEditFormSubmit(event) {
                 event.preventDefault();
                 const formData = new FormData(editForm);
                 const updatedCustomerData = {
-                    name: formData.get('name'), email: formData.get('email'),
-                    price: parseFloat(formData.get('price')) || null, priceType: formData.get('price-type'),
-                    recurring: formData.get('recurring'), paymentStatus: formData.get('payment-status'),
-                    workStatus: formData.get('work-status'), nextVisit: formData.get('next-visit'),
+                    name: formData.get('name'), 
+                    email: formData.get('email'),
+                    price: parseFloat(formData.get('price')) || null, 
+                    priceType: formData.get('price-type'),
+                    recurring: formData.get('recurring'),
+                    paymentStatus: formData.get('payment-status'),
+                    workStatus: formData.get('work-status'),
+                    nextVisit: formData.get('next-visit'),
                     lastPayment: formData.get('last-payment') || null
                 };
+                
                 const validationError = validateCustomerData(updatedCustomerData);
                 if (validationError) return showToast(validationError, 'error');
                 
                 try {
-                    // *** FIX #4 ***
                     const response = await fetch(`${API_URL}/customers/${selectedCustomerId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
@@ -794,18 +773,40 @@
                      if (error.message !== 'Unauthorized') showToast(error.message, 'error');
                 }
             }
+
+            async function handleSendEmail() {
+                const optionalMessage = document.getElementById('optional-message').value;
+                if (!selectedCustomerId) return;
+                const originalText = modalConfirmBtn.innerHTML;
+                modalConfirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Sending...';
+                modalConfirmBtn.disabled = true;
+                try {
+                    const response = await fetch(`${API_URL}/customers/${selectedCustomerId}/remind`, { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify({ message: optionalMessage }), 
+                        credentials: 'include' 
+                    });
+                    if (!response.ok) throw await checkAuth(response);
+                    const result = await response.json();
+                    hideAllModals();
+                    showToast(result.message || 'Email sent successfully!', 'success');
+                } catch (error) {
+                    if (error.message !== 'Unauthorized') showToast(error.message, 'error');
+                } finally {
+                    modalConfirmBtn.innerHTML = originalText;
+                    modalConfirmBtn.disabled = false;
+                }
+            }
             
             async function handleConfirmDelete() {
                 if (!selectedCustomerId) return;
                 try {
-                    // *** FIX #5 ***
-                    const response = await fetch(`${API_URL}/customers/${selectedCustomerId}`, {
-                        method: 'DELETE',
-                        credentials: 'include'
+                    const response = await fetch(`${API_URL}/customers/${selectedCustomerId}`, { 
+                        method: 'DELETE', 
+                        credentials: 'include' 
                     });
-                    
                     if (!response.ok) throw await checkAuth(response);
-
                     await loadCustomers();
                     hideAllModals();
                     showToast('Customer deleted.', 'success');
@@ -814,27 +815,76 @@
                 }
             }
 
+            // ⭐ UPDATED: handleCompleteJob is now handleConfirmComplete
+            async function handleConfirmComplete() {
+                if (!selectedCustomerId) return;
+
+                const originalText = completeConfirmBtn.innerHTML;
+                completeConfirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Completing...';
+                completeConfirmBtn.disabled = true;
+                
+                try {
+                    const response = await fetch(`${API_URL}/customers/${selectedCustomerId}/complete`, { 
+                        method: 'POST', 
+                        credentials: 'include' 
+                    });
+                    
+                    if (!response.ok) throw await checkAuth(response);
+                    
+                    // The server now sends back the updated customer
+                    const { message, customer: updatedCustomer } = await response.json();
+
+                    // --- Smart Update (No full reload) ---
+                    // 1. Find the customer in our main `customers` array
+                    const index = customers.findIndex(c => c.id === updatedCustomer.id);
+                    if (index !== -1) {
+                        // 2. Replace the old customer data with the new
+                        customers[index] = updatedCustomer;
+                    } else {
+                        // 3. (Fallback) Just add them if not found
+                        customers.push(updatedCustomer);
+                    }
+                    
+                    // 4. Re-filter and re-render the cards
+                    filterCustomers();
+                    updateStats();
+                    
+                    hideAllModals();
+                    showToast(message || 'Job marked complete!', 'success');
+
+                } catch (error) {
+                    if (error.message !== 'Unauthorized') showToast(error.message, 'error');
+                } finally {
+                    completeConfirmBtn.innerHTML = originalText;
+                    completeConfirmBtn.disabled = false;
+                }
+            }
+
             // --- GLOBAL EVENT LISTENERS ---
             addForm.addEventListener('submit', handleAddFormSubmit);
             editForm.addEventListener('submit', handleEditFormSubmit);
             modalConfirmBtn.addEventListener('click', handleSendEmail);
             deleteConfirmBtn.addEventListener('click', handleConfirmDelete);
+            openAddModalBtn.addEventListener('click', openAddModal);
+            
+            // ⭐ NEW: Listener for the "Complete Job" modal
+            completeConfirmBtn.addEventListener('click', handleConfirmComplete);
+            
             allModalCloseBtns.forEach(btn => btn.addEventListener('click', hideAllModals));
             allModalCancelBtns.forEach(btn => btn.addEventListener('click', hideAllModals));
-            deleteCancelBtn.addEventListener('click', hideAllModals);
+            deleteCancelBtn.addEventListener('click', hideAllModals); 
             searchInput.addEventListener('input', filterCustomers);
-            filterPayment.addEventListener('change', filterCustomers);
-            filterWork.addEventListener('change', filterCustomers);
-            clearFiltersBtn.addEventListener('click', () => {
-                searchInput.value = ''; filterPayment.value = 'all'; filterWork.value = 'all';
-                filterCustomers();
-            });
-            [reminderModal, viewDetailsModal, editCustomerModal, deleteConfirmModal].forEach(modal => {
-                modal.addEventListener('click', (event) => { if (event.target === modal) hideAllModals(); });
+            
+            // ⭐ UPDATED: Add the new modal to the background-click listener
+            [addCustomerModal, reminderModal, viewDetailsModal, editCustomerModal, deleteConfirmModal, completeJobModal].forEach(modal => {
+                modal.addEventListener('click', (event) => { 
+                    if (event.target === modal) hideAllModals(); 
+                });
             });
 
             // --- INITIALIZATION ---
-            setDefaultVisitDate();
+            initSegmentedControls(); // For the forms
+            initFilterChips(); // For the filter bar
             loadCustomers(); // Load initial data
         });
     </script>

@@ -53,19 +53,15 @@ const app = express();
 // ==========================================================
 // --- RENDER PROXY & CORS FIX ---
 // ==========================================================
-// Tell Express to trust the 'X-Forwarded-Proto' header from Render's proxy
 app.set('trust proxy', 1); 
-
-// Configure CORS to allow credentials from your live URL
 app.use(cors({
-  // *** REPLACE THIS with your actual Render URL ***
   origin: 'https://customer-management-sm4h.onrender.com', 
   credentials: true 
 }));
 // ==========================================================
 
-app.use(express.json()); // For parsing API JSON
-app.use(express.urlencoded({ extended: true })); // For parsing login form
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true })); 
 
 // Session Setup
 app.use(session({
@@ -73,9 +69,9 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // Will be true on Render
-    httpOnly: true, // Good practice
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Required for cross-site cookies
+    secure: process.env.NODE_ENV === 'production', 
+    httpOnly: true, 
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', 
     maxAge: 1000 * 60 * 60 * 24 // 1 day
   }
 }));
@@ -96,12 +92,12 @@ async function setupEmail() {
     process.exit(1);
   }
   console.log("--- 📧 Nodemailer ---");
-  console.log(`Using Email Host: ${host}`);
+  console.log(`Using Email Host: ${host} Port: ${port}`);
   console.log("--------------------");
   transporter = nodemailer.createTransport({
     host: host, 
     port: port, 
-    secure: false, 
+    secure: port == 465, 
     auth: { user, pass },
   });
 }
@@ -110,15 +106,21 @@ async function setupEmail() {
 // --- AUTHENTICATION ROUTES (Public) ---
 // ==========================================================
 
-// --- Serve the login page ---
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'login.html'));
 });
 
-// --- Handle login form submission ---
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
-  if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASS) {
+  const adminUser = process.env.ADMIN_USER;
+  const adminPass = process.env.ADMIN_PASS;
+
+  if (!adminUser || !adminPass) {
+    console.error("FATAL: ADMIN_USER or ADMIN_PASS not set in .env");
+    return res.redirect('/login?error=1');
+  }
+
+  if (username?.toLowerCase() === adminUser.toLowerCase() && password === adminPass) {
     req.session.isLoggedIn = true;
     res.redirect('/');
   } else {
@@ -126,11 +128,10 @@ app.post('/login', (req, res) => {
   }
 });
 
-// --- Handle logout ---
 app.get('/logout', (req, res) => {
   req.session.destroy((err) => {
     if (err) return res.redirect('/');
-    res.clearCookie('connect.sid'); // The default session cookie name
+    res.clearCookie('connect.sid'); 
     res.redirect('/login');
   });
 });
@@ -138,7 +139,6 @@ app.get('/logout', (req, res) => {
 // ==========================================================
 // --- AUTHENTICATION MIDDLEWARE ---
 // ==========================================================
-
 const isLoggedInPage = (req, res, next) => {
   if (req.session.isLoggedIn) return next();
   res.redirect('/login');
@@ -160,7 +160,31 @@ const apiRouter = express.Router();
 apiRouter.get('/customers', async (req, res) => {
   try {
     const customers = await Customer.find();
+    
+    const today = new Date().toISOString().split('T')[0];
+    
+    await Promise.all(customers.map(async (customer) => {
+      let needsSave = false;
+
+      // 1. Auto-Overdue Check
+      if (customer.paymentStatus === 'Pending' && customer.nextVisit < today) {
+        customer.paymentStatus = 'Overdue';
+        needsSave = true;
+      }
+
+      // 2. Auto-Reset Check (for new jobs)
+      if (customer.workStatus === 'Completed' && customer.paymentStatus === 'Paid' && customer.nextVisit <= today) {
+        customer.workStatus = 'Pending';
+        needsSave = true;
+      }
+      
+      if (needsSave) {
+        await customer.save();
+      }
+    }));
+
     res.json(customers.map(c => ({...c.toObject(), id: c._id })));
+
   } catch (error) {
     console.error("Error fetching customers:", error);
     res.status(500).json({ message: "Error fetching customers", error });
@@ -326,6 +350,56 @@ apiRouter.post('/customers/:id/remind', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+// ==========================================================
+// --- ⭐ "COMPLETE JOB" API ROUTE ⭐ ---
+// This is the route that was causing the 404.
+// ==========================================================
+apiRouter.post('/customers/:id/complete', async (req, res) => {
+  const id = req.params.id;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: 'Invalid customer ID' });
+  }
+
+  try {
+    const customer = await Customer.findById(id);
+    if (!customer) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    // 1. Set new statuses
+    customer.workStatus = 'Completed';
+    customer.paymentStatus = 'Pending';
+    customer.lastPayment = null; // Clear last payment date for the new cycle
+
+    // 2. Calculate next visit date (based on today)
+    const today = new Date();
+    today.setUTCHours(12, 0, 0, 0); // Set time to noon UTC to avoid timezone issues
+
+    if (customer.recurring === 'Weekly') {
+      today.setUTCDate(today.getUTCDate() + 7);
+    } else if (customer.recurring === 'Bi-weekly') {
+      today.setUTCDate(today.getUTCDate() + 14);
+    } else if (customer.recurring === 'Monthly') {
+      today.setUTCMonth(today.getUTCMonth() + 1);
+    }
+
+    // Only update date if it's a recurring customer
+    if (customer.recurring !== 'None') {
+      customer.nextVisit = today.toISOString().split('T')[0];
+    }
+    
+    // 3. Save and send back
+    await customer.save();
+    // Send back the updated customer
+    res.json({ message: 'Job completed and next visit scheduled!', customer: {...customer.toObject(), id: customer._id } });
+
+  } catch (error) {
+    console.error("Error completing job:", error);
+    res.status(500).json({ message: "Error completing job", error });
+  }
+});
+
 
 // *** APPLY API PROTECTION ***
 app.use('/api', isLoggedInApi, apiRouter);
