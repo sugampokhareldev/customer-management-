@@ -26,7 +26,7 @@ async function connectToDb() {
     console.log('🚀 Connected to MongoDB successfully!');
   } catch (error) {
     console.error("FATAL ERROR: Could not connect to MongoDB.", error);
-    process.exit(1); // Exit app if DB connection fails
+    process.exit(1); 
   }
 }
 
@@ -252,7 +252,7 @@ apiRouter.delete('/customers/:id', async (req, res) => {
   }
 });
 
-// POST /api/customers/:id/remind
+// ⭐ UPDATED: POST /api/customers/:id/remind (with Language Logic)
 apiRouter.post('/customers/:id/remind', async (req, res) => {
   try {
     const id = req.params.id;
@@ -260,17 +260,19 @@ apiRouter.post('/customers/:id/remind', async (req, res) => {
       return res.status(400).json({ message: 'Invalid customer ID' });
     }
     
-    const { message: optionalMessage } = req.body;
+    // Get language from the request body
+    const { message: optionalMessage, language } = req.body;
     const customer = await Customer.findById(id);
     
     if (!customer) return res.status(404).json({ message: 'Customer not found' });
 
     // --- Helper Functions ---
-    const formatDate = (dateString) => {
+    const formatDate = (dateString, lang = 'en-US') => {
       if (!dateString) return 'N/A';
       const date = new Date(dateString);
+      // Use 'de-DE' for German dates
       const options = { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' };
-      return date.toLocaleDateString('en-US', options);
+      return date.toLocaleDateString(lang, options);
     };
     
     const formatCurrency = (value, priceType) => {
@@ -279,67 +281,124 @@ apiRouter.post('/customers/:id/remind', async (req, res) => {
        return priceType === 'Hourly' ? `${formattedPrice}/hr` : formattedPrice;
     };
     
-    const formatStatus = (status) => {
+    const formatStatus = (status, lang = 'en') => {
       if (!status) return 'N/A';
-      let color = '#333'; let fontWeight = 'normal';
+      
+      let color = '#333'; 
+      let fontWeight = 'normal';
+      let statusText = status;
+
+      // Translate status text
+      if (lang === 'de') {
+          if (status.toLowerCase() === 'pending') statusText = 'Ausstehend';
+          if (status.toLowerCase() === 'paid') statusText = 'Bezahlt';
+          if (status.toLowerCase() === 'overdue') statusText = 'Überfällig';
+      }
+
       switch (status.toLowerCase()) {
         case 'pending': color = '#D97706'; fontWeight = 'bold'; break;
         case 'overdue': color = '#D9534F'; fontWeight = 'bold'; break;
         case 'paid': color = '#10B981'; fontWeight = 'bold'; break;
       }
-      return `<span style="color: ${color}; font-weight: ${fontWeight};">${status}</span>`;
+      return `<span style="color: ${color}; font-weight: ${fontWeight};">${statusText}</span>`;
     };
-
-    const visitDate = formatDate(customer.nextVisit);
-    const serviceType = customer.recurring === 'None' ? 'One-Time Cleaning' : `${customer.recurring} Cleaning`;
+    
+    // --- Create variables ---
+    const visitDateEN = formatDate(customer.nextVisit, 'en-US');
+    const visitDateDE = formatDate(customer.nextVisit, 'de-DE');
+    const serviceTypeEN = customer.recurring === 'None' ? 'One-Time Cleaning' : `${customer.recurring} Cleaning`;
+    const serviceTypeDE = customer.recurring === 'None' ? 'Einmalige Reinigung' : `${customer.recurring.replace('Weekly', 'Wöchentliche').replace('Bi-weekly', 'Zweiwöchentliche').replace('Monthly', 'Monatliche')} Reinigung`;
     const servicePrice = formatCurrency(customer.price, customer.priceType);
-    const paymentStatusDisplay = formatStatus(customer.paymentStatus);
 
-    // --- HTML Email Template ---
-    const emailBody = `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <p>Hello ${customer.name},</p>
-        <p>This is a friendly reminder of your upcoming cleaning appointment scheduled for <strong>${visitDate}</strong>.</p>
-        
-        <h3 style="color: #0056b3; border-bottom: 1px solid #eee; padding-bottom: 5px;">Service Details:</h3>
-        <ul style="list-style-type: none; padding-left: 0;">
-          <li><strong>Type:</strong> ${serviceType}</li>
-          <li><strong>Price:</strong> ${servicePrice}</li> 
-          <li><strong>Payment Status:</strong> ${paymentStatusDisplay}</li>
-        </ul>
-        
-        ${customer.recurring !== 'None' ? `<p>Thank you for being part of our ${customer.recurring.toLowerCase()} service plan. We truly appreciate your continued trust in AJK Cleaners and look forward to serving you.</p>` : ''}
-        
-        ${optionalMessage ? `
-          <div style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; margin-top: 20px;">
-            <p style="margin: 0;"><strong>A note from our team:</strong></p>
-            <p style="margin: 0; font-style: italic;">${optionalMessage.replace(/\n/g, '<br>')}</p>
-          </div>` : ''}
-        
-        <p style="margin-top: 20px;">If you have any questions or would like to postpone your appointment, please contact us at <a href="mailto:info@ajkcleaners.de">info@ajkcleaners.de</a>, call us at +49 176 61852286, or simply reply to this email.</p>
-        
-        <p>Warm regards,<br>The AJK Cleaners Team</p>
-        
-        <hr style="border: none; border-top: 1px solid #eee;">
-        
-        <p style="font-size: 0.9em; color: #777;">
-          📧 <a href="mailto:info@ajkcleaners.de">info@ajkcleaners.de</a><br>
-          🌐 <a href="https://ajkcleaners.de/">https://ajkcleaners.de/</a>
-        </p>
-      </div>
-    `;
+    // --- Select Language Template ---
+    let emailSubject = '';
+    let emailBody = '';
+
+    if (language === 'de') {
+        // --- GERMAN TEMPLATE ---
+        const paymentStatusDisplay = formatStatus(customer.paymentStatus, 'de');
+        emailSubject = `Erinnerung: Ihr bevorstehender Reinigungstermin am ${visitDateDE}`;
+        emailBody = `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <p>Hallo ${customer.name},</p>
+            <p>Dies ist eine freundliche Erinnerung an Ihren bevorstehenden Reinigungstermin am <strong>${visitDateDE}</strong>.</p>
+            
+            <h3 style="color: #0056b3; border-bottom: 1px solid #eee; padding-bottom: 5px;">Service-Details:</h3>
+            <ul style="list-style-type: none; padding-left: 0;">
+              <li><strong>Typ:</strong> ${serviceTypeDE}</li>
+              <li><strong>Preis:</strong> ${servicePrice}</li> 
+              <li><strong>Zahlungsstatus:</strong> ${paymentStatusDisplay}</li>
+            </ul>
+            
+            ${customer.recurring !== 'None' ? `<p>Vielen Dank, dass Sie Teil unseres ${customer.recurring.toLowerCase()} Serviceplans sind. Wir schätzen Ihr anhaltendes Vertrauen in AJK Cleaners und freuen uns darauf, Sie zu bedienen.</p>` : ''}
+            
+            ${optionalMessage ? `
+              <div style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; margin-top: 20px;">
+                <p style="margin: 0;"><strong>Eine Anmerkung von unserem Team:</strong></p>
+                <p style="margin: 0; font-style: italic;">${optionalMessage.replace(/\n/g, '<br>')}</p>
+              </div>` : ''}
+            
+            <p style="margin-top: 20px;">Wenn Sie Fragen haben oder Ihren Termin verschieben möchten, kontaktieren Sie uns bitte unter <a href="mailto:info@ajkcleaners.de">info@ajkcleaners.de</a>, rufen Sie uns an unter +49 176 61852286 oder antworten Sie einfach auf diese E-Mail.</p>
+            
+            <p>Herzliche Grüße,<br>Das AJK Cleaners Team</p>
+            
+            <hr style="border: none; border-top: 1px solid #eee;">
+            <p style="font-size: 0.9em; color: #777;">
+              📧 <a href="mailto:info@ajkcleaners.de">info@ajkcleaners.de</a><br>
+              🌐 <a href="https://ajkcleaners.de/">https://ajkcleaners.de/</a>
+            </p>
+          </div>
+        `;
+    } else {
+        // --- ENGLISH TEMPLATE (DEFAULT) ---
+        const paymentStatusDisplay = formatStatus(customer.paymentStatus, 'en');
+        emailSubject = `Reminder: Upcoming Cleaning Service on ${visitDateEN}`;
+        emailBody = `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <p>Hello ${customer.name},</p>
+            <p>This is a friendly reminder of your upcoming cleaning appointment scheduled for <strong>${visitDateEN}</strong>.</p>
+            
+            <h3 style="color: #0056b3; border-bottom: 1px solid #eee; padding-bottom: 5px;">Service Details:</h3>
+            <ul style="list-style-type: none; padding-left: 0;">
+              <li><strong>Type:</strong> ${serviceTypeEN}</li>
+              <li><strong>Price:</strong> ${servicePrice}</li> 
+              <li><strong>Payment Status:</strong> ${paymentStatusDisplay}</li>
+            </ul>
+            
+            ${customer.recurring !== 'None' ? `<p>Thank you for being part of our ${customer.recurring.toLowerCase()} service plan. We truly appreciate your continued trust in AJK Cleaners and look forward to serving you.</p>` : ''}
+            
+            ${optionalMessage ? `
+              <div style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; margin-top: 20px;">
+                <p style="margin: 0;"><strong>A note from our team:</strong></p>
+                <p style="margin: 0; font-style: italic;">${optionalMessage.replace(/\n/g, '<br>')}</p>
+              </div>` : ''}
+            
+            <p style="margin-top: 20px;">If you have any questions or would like to postpone your appointment, please contact us at <a href="mailto:info@ajkcleaners.de">info@ajkcleaners.de</a>, call us at +49 176 61852286, or simply reply to this email.</p>
+            
+            <p>Warm regards,<br>The AJK Cleaners Team</p>
+            
+            <hr style="border: none; border-top: 1px solid #eee;">
+            <p style="font-size: 0.9em; color: #777;">
+              📧 <a href="mailto:info@ajkcleaners.de">info@ajkcleaners.de</a><br>
+              🌐 <a href="https://ajkcleaners.de/">https://ajkcleaners.de/</a>
+            </p>
+          </div>
+        `;
+    }
 
     // --- SendMail Block ---
     try {
       await transporter.sendMail({
         from: '"AJK Cleaners" <info@ajkcleaners.de>',
         to: customer.email,
-        subject: `Reminder: Upcoming Cleaning Service on ${visitDate}`,
+        subject: emailSubject,
         html: emailBody,
         replyTo: 'info@ajkcleaners.de' 
       });
-      console.log("Email sent!");
-      res.json({ message: 'Email sent successfully!' });
+      
+      const successMessage = language === 'de' ? 'E-Mail erfolgreich gesendet!' : 'Email sent successfully!';
+      res.json({ message: successMessage });
+
     } catch (emailError) {
       console.error("Error sending email:", emailError);
       res.status(500).json({ message: 'Error sending email' });
@@ -351,10 +410,7 @@ apiRouter.post('/customers/:id/remind', async (req, res) => {
   }
 });
 
-// ==========================================================
-// --- ⭐ "COMPLETE JOB" API ROUTE ⭐ ---
-// This is the route that was causing the 404.
-// ==========================================================
+// "COMPLETE JOB" API ROUTE
 apiRouter.post('/customers/:id/complete', async (req, res) => {
   const id = req.params.id;
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -370,11 +426,11 @@ apiRouter.post('/customers/:id/complete', async (req, res) => {
     // 1. Set new statuses
     customer.workStatus = 'Completed';
     customer.paymentStatus = 'Pending';
-    customer.lastPayment = null; // Clear last payment date for the new cycle
+    customer.lastPayment = null; 
 
     // 2. Calculate next visit date (based on today)
     const today = new Date();
-    today.setUTCHours(12, 0, 0, 0); // Set time to noon UTC to avoid timezone issues
+    today.setUTCHours(12, 0, 0, 0); 
 
     if (customer.recurring === 'Weekly') {
       today.setUTCDate(today.getUTCDate() + 7);
@@ -384,14 +440,12 @@ apiRouter.post('/customers/:id/complete', async (req, res) => {
       today.setUTCMonth(today.getUTCMonth() + 1);
     }
 
-    // Only update date if it's a recurring customer
     if (customer.recurring !== 'None') {
       customer.nextVisit = today.toISOString().split('T')[0];
     }
     
     // 3. Save and send back
     await customer.save();
-    // Send back the updated customer
     res.json({ message: 'Job completed and next visit scheduled!', customer: {...customer.toObject(), id: customer._id } });
 
   } catch (error) {

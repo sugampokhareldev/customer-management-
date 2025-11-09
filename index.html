@@ -13,99 +13,35 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* Simple fade-in for modals */
+        /* ... (All your existing CSS styles are unchanged) ... */
         .modal-fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        
-        /* Toast animation */
         .toast-show { animation: slideIn 0.3s ease-out, fadeOut 0.3s ease-in 2.7s forwards; }
         @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } 90% { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(20px); } }
-        
-        /* Custom scrollbar */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
-        
-        /* Card hover effects */
         .customer-card { transition: all 0.3s ease; }
         .customer-card:hover { transform: translateY(-5px); }
-        
-        /* Status indicators */
         .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
         .status-pending { background-color: #f59e0b; }
         .status-paid { background-color: #10b981; }
         .status-overdue { background-color: #ef4444; }
         .status-completed { background-color: #10b981; }
         .status-postponed { background-color: #f59e0b; }
-
-        /* Make modals scrollable on small screens */
-        .modal-body-scroll {
-            overflow-y: auto;
-            max-height: 75vh;
-        }
-
-        /* Segmented Control Styles */
-        .segmented-control {
-            display: grid;
-            grid-auto-flow: column;
-            grid-auto-columns: 1fr;
-            border-radius: 0.375rem; /* rounded-md */
-            overflow: hidden;
-            border: 1px solid #D1D5DB; /* border-gray-300 */
-        }
-        .segmented-control-btn {
-            padding: 0.5rem 0.25rem; /* py-2 px-1 */
-            font-size: 0.875rem; /* text-sm */
-            font-weight: 500; /* font-medium */
-            color: #4B5563; /* text-gray-600 */
-            background-color: #ffffff; /* bg-white */
-            border-left: 1px solid #D1D5DB; /* border-l border-gray-300 */
-            transition: all 0.2s ease-in-out;
-            text-align: center;
-        }
-        .segmented-control-btn:first-child {
-            border-left: none;
-        }
-        .segmented-control-btn.active {
-            color: #ffffff; /* text-white */
-            background-color: #2563EB; /* bg-blue-600 */
-            border-color: #2563EB; /* border-blue-600 */
-        }
-        .segmented-control-btn:not(.active):hover {
-            background-color: #F9FAFB; /* bg-gray-50 */
-        }
-
-        /* Filter Chip Styles */
-        .filter-chip {
-            padding: 0.375rem 1rem; /* py-1.5 px-4 */
-            font-size: 0.875rem; /* text-sm */
-            font-weight: 500; /* font-medium */
-            color: #374151; /* text-gray-700 */
-            background-color: #F3F4F6; /* bg-gray-200 */
-            border-radius: 9999px; /* rounded-full */
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            white-space: nowrap; /* Prevent wrapping */
-        }
-        .filter-chip:hover {
-            background-color: #E5E7EB; /* bg-gray-300 */
-        }
-        .filter-chip.active {
-            color: #ffffff; /* text-white */
-            background-color: #2563EB; /* bg-blue-600 */
-        }
-        /* For horizontal scrolling on mobile */
-        .filter-chip-container {
-            display: flex;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none; /* Firefox */
-        }
-        .filter-chip-container::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, Opera */
-        }
+        .modal-body-scroll { overflow-y: auto; max-height: 75vh; }
+        .segmented-control { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border-radius: 0.375rem; overflow: hidden; border: 1px solid #D1D5DB; }
+        .segmented-control-btn { padding: 0.5rem 0.25rem; font-size: 0.875rem; font-weight: 500; color: #4B5563; background-color: #ffffff; border-left: 1px solid #D1D5DB; transition: all 0.2s ease-in-out; text-align: center; }
+        .segmented-control-btn:first-child { border-left: none; }
+        .segmented-control-btn.active { color: #ffffff; background-color: #2563EB; border-color: #2563EB; }
+        .segmented-control-btn:not(.active):hover { background-color: #F9FAFB; }
+        .filter-chip { padding: 0.375rem 1rem; font-size: 0.875rem; font-weight: 500; color: #374151; background-color: #F3F4F6; border-radius: 9999px; cursor: pointer; transition: all 0.2s ease-in-out; white-space: nowrap; }
+        .filter-chip:hover { background-color: #E5E7EB; }
+        .filter-chip.active { color: #ffffff; background-color: #2563EB; }
+        .filter-chip-container { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .filter-chip-container::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="bg-gray-50 font-sans antialiased">
@@ -199,11 +135,34 @@
 
     <div id="reminder-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4">
         <div class="bg-white rounded-lg shadow-2xl w-full max-w-md mx-auto modal-fade-in">
-            <div class="flex justify-between items-center p-5 border-b border-gray-200"><h3 class="text-xl font-semibold text-gray-800 flex items-center"><i class="fas fa-envelope text-blue-500 mr-2"></i>Send Service Reminder</h3><button class="modal-close-btn text-gray-400 hover:text-gray-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>
+            <div class="flex justify-between items-center p-5 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800 flex items-center"><i class="fas fa-envelope text-blue-500 mr-2"></i>Send Service Reminder</h3>
+                <button class="modal-close-btn text-gray-400 hover:text-gray-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
             <div class="p-6 space-y-4">
-                <div class="bg-blue-50 p-4 rounded-lg"><div class="flex items-center mb-2"><i class="fas fa-user text-blue-500 mr-2"></i><span class="font-medium">Customer:</span></div><p id="modal-customer-name" class="text-gray-700 font-semibold"></p><p id="modal-customer-email" class="text-gray-600 text-sm"></p></div>
-                <div class="bg-yellow-50 p-4 rounded-lg"><div class="flex items-center mb-2"><i class="fas fa-calendar-alt text-yellow-500 mr-2"></i><span class="font-medium">Service Date:</span></div><p id="modal-visit-date" class="text-gray-700 font-semibold"></p></div>
-                <div><label for="optional-message" class="block text-sm font-medium text-gray-600 mb-1">Optional Message</label><textarea id="optional-message" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Add a personalized message..."></textarea></div>
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <div class="flex items-center mb-2"><i class="fas fa-user text-blue-500 mr-2"></i><span class="font-medium">Customer:</span></div>
+                    <p id="modal-customer-name" class="text-gray-700 font-semibold"></p>
+                    <p id="modal-customer-email" class="text-gray-600 text-sm"></p>
+                </div>
+                <div class="bg-yellow-50 p-4 rounded-lg">
+                    <div class="flex items-center mb-2"><i class="fas fa-calendar-alt text-yellow-500 mr-2"></i><span class="font-medium">Service Date:</span></div>
+                    <p id="modal-visit-date" class="text-gray-700 font-semibold"></p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Email Language</label>
+                    <input type="hidden" id="email-language" value="en">
+                    <div class="segmented-control" data-control-group-for="email-language">
+                        <button type="button" class="segmented-control-btn active" data-value="en">English 🇬🇧</button>
+                        <button type="button" class="segmented-control-btn" data-value="de">German 🇩🇪</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="optional-message" class="block text-sm font-medium text-gray-600 mb-1">Optional Message</label>
+                    <textarea id="optional-message" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Add a personalized message..."></textarea>
+                </div>
             </div>
             <div class="flex justify-end items-center p-5 border-t border-gray-200 bg-gray-50 rounded-b-lg space-x-3">
                 <button class="modal-cancel-btn px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">Cancel</button>
@@ -223,7 +182,7 @@
     <div id="edit-customer-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4">
         <div class="bg-white rounded-lg shadow-2xl w-full max-w-lg mx-auto modal-fade-in">
             <div class="flex justify-between items-center p-5 border-b border-gray-200 sticky top-0 bg-white"><h3 class="text-xl font-semibold text-gray-800 flex items-center"><i class="fas fa-edit text-blue-500 mr-2"></i>Edit Customer</h3><button class="modal-close-btn text-gray-400 hover:text-gray-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>
-            <form id="edit-customer-form"><div class="p-6 space-y-4 modal-body-scroll custom-scrollbar"><div><label for="edit-name" class="block text-sm font-medium text-gray-600">Name</label><input type="text" id="edit-name" name="name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div><label for="edit-email" class="block text-sm font-medium text-gray-600">Email</label><input type="email" id="edit-email" name="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label for="edit-price" class="block text-sm font-medium text-gray-600">Service Price (€)</label><input type="number" id="edit-price" name="price" min="0" step="0.01" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label class="block text-sm font-medium text-gray-600">Price Type</label><input type="hidden" name="price-type" id="edit-price-type"><div class="segmented-control mt-1" data-control-group-for="edit-price-type"><button type="button" class="segmented-control-btn" data-value="Fixed">Fixed</button><button type="button" class="segmented-control-btn" data-value="Hourly">Hourly</button></div></div></div><div><label class="block text-sm font-medium text-gray-600">Recurring</label><input type="hidden" name="recurring" id="edit-recurring"><div class="segmented-control mt-1" data-control-group-for="edit-recurring"><button type="button" class="segmented-control-btn" data-value="None">None</button><button type="button" class="segmented-control-btn" data-value="Weekly">Weekly</button><button type="button" class="segmented-control-btn" data-value="Bi-weekly">Bi-weekly</button><button type="button" class="segmented-control-btn" data-value="Monthly">Monthly</button></div></div><div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label class="block text-sm font-medium text-gray-600">Payment Status</label><input type="hidden" name="payment-status" id="edit-payment-status"><div class="segmented-control mt-1" data-control-group-for="edit-payment-status"><button type="button" class="segmented-control-btn" data-value="Pending">Pending</button><button type="button" class="segmented-control-btn" data-value="Paid">Paid</button><button type="button" class="segmented-control-btn" data-value="Overdue">Overdue</button></div></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label class="block text-sm font-medium text-gray-600">Work Status</label><input type="hidden" name="work-status" id="edit-work-status"><div class="segmented-control mt-1" data-control-group-for="edit-work-status"><button type="button" class="segmented-control-btn" data-value="Pending">Pending</button><button type="button" class="segmented-control-btn" data-value="Completed">Completed</button><button type="button" class="segmented-control-btn" data-value="Postponed">Postponed</button></div></div></div><div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label for="edit-next-visit" class="block text-sm font-medium text-gray-600">Next Visit Date</label><input type="date" id="edit-next-visit" name="next-visit" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label for="edit-last-payment" class="block text-sm font-medium text-gray-600">Last Payment Date</label><input type="date" id="edit-last-payment" name="last-payment" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div></div></div><div class="flex justify-end items-center p-5 border-t border-gray-200 bg-gray-50 rounded-b-lg sticky bottom-0"><button type="button" class="modal-cancel-btn px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">Cancel</button><button type="submit" class="px-5 py-2 bg-green-600 text-white font-semibold rounded-md shadow-md hover:bg-green-700 transition duration-200 flex items-center"><i class="fas fa-save mr-2"></i>Save Changes</button></div></form>
+            <form id="edit-customer-form"><div class="p-6 space-y-4 modal-body-scroll custom-scrollbar"><div><label for="edit-name" class="block text-sm font-medium text-gray-600">Name</label><input type="text" id="edit-name" name="name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div><label for="edit-email" class="block text-sm font-medium text-gray-600">Email</label><input type="email" id="edit-email" name="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label for="edit-price" class="block text-sm font-medium text-gray-600">Service Price (€)</label><input type="number" id="edit-price" name="price" min="0" step="0.01" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label class="block text-sm font-medium text-gray-600">Price Type</label><input type="hidden" name="price-type" id="edit-price-type"><div class="segmented-control mt-1" data-control-group-for="edit-price-type"><button type="button" class="segmented-control-btn" data-value="Fixed">Fixed</button><button type="button" class="segmented-control-btn" data-value="Hourly">Hourly</button></div></div></div><div><label class="block text-sm font-medium text-gray-600">Recurring</label><input type="hidden" name="recurring" id="edit-recurring"><div class="segmented-control mt-1" data-control-group-for="edit-recurring"><button type="button" class="segmented-control-btn" data-value="None">None</button><button type="button" class="segmented-control-btn" data-value="Weekly">Weekly</button><button type="button" class="segmented-control-btn" data-value="Bi-weekly">Bi-weekly</button><button type="button" class.segmented-control-btn" data-value="Monthly">Monthly</button></div></div><div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label class="block text-sm font-medium text-gray-600">Payment Status</label><input type="hidden" name="payment-status" id="edit-payment-status"><div class="segmented-control mt-1" data-control-group-for="edit-payment-status"><button type="button" class="segmented-control-btn" data-value="Pending">Pending</button><button type="button" class="segmented-control-btn" data-value="Paid">Paid</button><button type="button" class="segmented-control-btn" data-value="Overdue">Overdue</button></div></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label class="block text-sm font-medium text-gray-600">Work Status</label><input type="hidden" name="work-status" id="edit-work-status"><div class="segmented-control mt-1" data-control-group-for="edit-work-status"><button type="button" class="segmented-control-btn" data-value="Pending">Pending</button><button type="button" class="segmented-control-btn" data-value="Completed">Completed</button><button type="button" class="segmented-control-btn" data-value="Postponed">Postponed</button></div></div></div><div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label for="edit-next-visit" class="block text-sm font-medium text-gray-600">Next Visit Date</label><input type="date" id="edit-next-visit" name="next-visit" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label for="edit-last-payment" class="block text-sm font-medium text-gray-600">Last Payment Date</label><input type="date" id="edit-last-payment" name="last-payment" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div></div></div><div class="flex justify-end items-center p-5 border-t border-gray-200 bg-gray-50 rounded-b-lg sticky bottom-0"><button type="button" class="modal-cancel-btn px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">Cancel</button><button type="submit" class="px-5 py-2 bg-green-600 text-white font-semibold rounded-md shadow-md hover:bg-green-700 transition duration-200 flex items-center"><i class="fas fa-save mr-2"></i>Save Changes</button></div></form>
         </div>
     </div>
 
@@ -232,23 +191,7 @@
     </div>
 
     <div id="complete-job-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4">
-        <div class="bg-white rounded-lg shadow-2xl w-full max-w-sm mx-auto modal-fade-in">
-            <div class="p-6 text-center">
-                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-check-circle text-green-500 text-2xl"></i>
-                </div>
-                <h3 class="text-xl font-semibold text-gray-800 mb-2">Confirm Completion</h3>
-                <p class="text-gray-600 mb-6">Mark job for <strong id="complete-customer-name"></strong> as complete and schedule next visit?</p>
-                <div class="flex justify-center items-center space-x-4">
-                    <button class="modal-cancel-btn px-6 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">
-                        Cancel
-                    </button>
-                    <button id="complete-confirm-btn" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-md shadow-md hover:bg-green-700 transition duration-200 flex items-center">
-                        <i class="fas fa-check mr-2"></i>Confirm
-                    </button>
-                </div>
-            </div>
-        </div>
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-sm mx-auto modal-fade-in"><div class="p-6 text-center"><div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-check-circle text-green-500 text-2xl"></i></div><h3 class="text-xl font-semibold text-gray-800 mb-2">Confirm Completion</h3><p class="text-gray-600 mb-6">Mark job for <strong id="complete-customer-name"></strong> as complete and schedule next visit?</p><div class="flex justify-center items-center space-x-4"><button class="modal-cancel-btn px-6 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">Cancel</button><button id="complete-confirm-btn" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-md shadow-md hover:bg-green-700 transition duration-200 flex items-center"><i class="fas fa-check mr-2"></i>Confirm</button></div></div></div>
     </div>
 
     <div id="toast-notification" class="hidden fixed bottom-5 right-5 z-50 px-5 py-3 rounded-lg shadow-lg text-white">
@@ -294,7 +237,6 @@
             const deleteCancelBtn = document.getElementById('delete-cancel-btn');
             const deleteCustomerName = document.getElementById('delete-customer-name');
             
-            // ⭐ NEW: "Complete Job" Modal Elements
             const completeJobModal = document.getElementById('complete-job-modal');
             const completeConfirmBtn = document.getElementById('complete-confirm-btn');
             const completeCustomerName = document.getElementById('complete-customer-name');
@@ -381,7 +323,6 @@
 
             function validateCustomerData(customer) {
                 const today = new Date(APP_TODAY + 'T00:00:00Z').toISOString().split('T')[0];
-                // Allow today's date, but not past dates
                 if (customer.nextVisit && customer.nextVisit < today) return 'Error: Next visit date cannot be in the past.';
                 if (customer.lastPayment && customer.lastPayment > today) return 'Error: Last payment date cannot be in the future.';
                 return null;
@@ -408,14 +349,13 @@
                 renderCards();
             }
             
-            // ⭐ UPDATED: hideAllModals
             function hideAllModals() {
                 addCustomerModal.classList.add('hidden');
                 reminderModal.classList.add('hidden');
                 viewDetailsModal.classList.add('hidden');
                 editCustomerModal.classList.add('hidden');
                 deleteConfirmModal.classList.add('hidden');
-                completeJobModal.classList.add('hidden'); // <-- NEW
+                completeJobModal.classList.add('hidden'); 
                 selectedCustomerId = null;
             }
 
@@ -560,7 +500,6 @@
                     const daysUntilVisit = Math.ceil((nextVisitDate - today) / (1000 * 60 * 60 * 24));
                     const isUpcoming = daysUntilVisit <= 3 && daysUntilVisit >= 0;
 
-                    // --- Dynamic Primary Button ---
                     let primaryButton = '';
                     if (customer.workStatus === 'Pending') {
                         primaryButton = `
@@ -619,9 +558,7 @@
             }
 
             function attachCardButtonListeners() {
-                // ⭐ UPDATED to call the new modal function
                 document.querySelectorAll('.complete-job-btn').forEach(btn => btn.addEventListener('click', (e) => openCompleteJobModal(e.target.closest('button').dataset.id)));
-                
                 document.querySelectorAll('.send-reminder-btn').forEach(btn => btn.addEventListener('click', (e) => openReminderModal(e.target.closest('button').dataset.id)));
                 document.querySelectorAll('.view-details-btn').forEach(btn => btn.addEventListener('click', (e) => openViewModal(e.target.closest('button').dataset.id)));
                 document.querySelectorAll('.edit-customer-btn').forEach(btn => btn.addEventListener('click', (e) => openEditModal(e.target.closest('button').dataset.id)));
@@ -675,6 +612,7 @@
                 addCustomerModal.classList.remove('hidden');
             }
             
+            // ⭐ UPDATED: openReminderModal
             function openReminderModal(id) {
                 selectedCustomerId = id;
                 const customer = customers.find(c => c.id === selectedCustomerId);
@@ -683,6 +621,10 @@
                 document.getElementById('modal-customer-email').textContent = customer.email;
                 document.getElementById('modal-visit-date').textContent = formatDate(customer.nextVisit);
                 document.getElementById('optional-message').value = '';
+                
+                // Reset language to default
+                setActiveSegment('email-language', 'en'); 
+                
                 reminderModal.classList.remove('hidden');
             }
 
@@ -728,7 +670,6 @@
                 deleteConfirmModal.classList.remove('hidden');
             }
             
-            // ⭐ NEW: openCompleteJobModal
             function openCompleteJobModal(id) {
                 selectedCustomerId = id;
                 const customer = customers.find(c => c.id === selectedCustomerId);
@@ -774,17 +715,24 @@
                 }
             }
 
+            // ⭐ UPDATED: handleSendEmail
             async function handleSendEmail() {
                 const optionalMessage = document.getElementById('optional-message').value;
+                const language = document.getElementById('email-language').value; // <-- NEW
                 if (!selectedCustomerId) return;
+                
                 const originalText = modalConfirmBtn.innerHTML;
                 modalConfirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Sending...';
                 modalConfirmBtn.disabled = true;
+                
                 try {
                     const response = await fetch(`${API_URL}/customers/${selectedCustomerId}/remind`, { 
                         method: 'POST', 
                         headers: { 'Content-Type': 'application/json' }, 
-                        body: JSON.stringify({ message: optionalMessage }), 
+                        body: JSON.stringify({ 
+                            message: optionalMessage,
+                            language: language // <-- NEW
+                        }), 
                         credentials: 'include' 
                     });
                     if (!response.ok) throw await checkAuth(response);
@@ -815,7 +763,6 @@
                 }
             }
 
-            // ⭐ UPDATED: handleCompleteJob is now handleConfirmComplete
             async function handleConfirmComplete() {
                 if (!selectedCustomerId) return;
 
@@ -831,21 +778,16 @@
                     
                     if (!response.ok) throw await checkAuth(response);
                     
-                    // The server now sends back the updated customer
                     const { message, customer: updatedCustomer } = await response.json();
 
-                    // --- Smart Update (No full reload) ---
-                    // 1. Find the customer in our main `customers` array
+                    // Smart Update (No full reload)
                     const index = customers.findIndex(c => c.id === updatedCustomer.id);
                     if (index !== -1) {
-                        // 2. Replace the old customer data with the new
                         customers[index] = updatedCustomer;
                     } else {
-                        // 3. (Fallback) Just add them if not found
                         customers.push(updatedCustomer);
                     }
                     
-                    // 4. Re-filter and re-render the cards
                     filterCustomers();
                     updateStats();
                     
@@ -866,8 +808,6 @@
             modalConfirmBtn.addEventListener('click', handleSendEmail);
             deleteConfirmBtn.addEventListener('click', handleConfirmDelete);
             openAddModalBtn.addEventListener('click', openAddModal);
-            
-            // ⭐ NEW: Listener for the "Complete Job" modal
             completeConfirmBtn.addEventListener('click', handleConfirmComplete);
             
             allModalCloseBtns.forEach(btn => btn.addEventListener('click', hideAllModals));
@@ -875,7 +815,6 @@
             deleteCancelBtn.addEventListener('click', hideAllModals); 
             searchInput.addEventListener('input', filterCustomers);
             
-            // ⭐ UPDATED: Add the new modal to the background-click listener
             [addCustomerModal, reminderModal, viewDetailsModal, editCustomerModal, deleteConfirmModal, completeJobModal].forEach(modal => {
                 modal.addEventListener('click', (event) => { 
                     if (event.target === modal) hideAllModals(); 
@@ -883,7 +822,7 @@
             });
 
             // --- INITIALIZATION ---
-            initSegmentedControls(); // For the forms
+            initSegmentedControls(); // For the forms AND new language selector
             initFilterChips(); // For the filter bar
             loadCustomers(); // Load initial data
         });
