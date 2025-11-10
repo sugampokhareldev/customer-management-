@@ -1,26 +1,22 @@
 {
-  "name": "backend",
+  "name": "customer-manager",
   "version": "1.0.0",
-  "description": "",
+  "description": "Customer management app",
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google/generative-ai": "^0.14.0",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
-    "express": "^5.1.0",
-    "express-session": "^1.18.2",
-    "lowdb": "^7.0.1",
-    "mongoose": "^8.19.3",
-    "nodemailer": "^7.0.10"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.10"
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "mongoose": "^8.4.1",
+    "nodemailer": "^6.9.13"
   }
 }
