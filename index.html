@@ -1,109 +1,207 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"> <!-- Corrected from UTF-R -->
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Management</title>
-    
+    <title>AJK Cleaners CRM</title>
+
+    <!-- PWA Manifest & Theme -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#0056b3">
     <link rel="apple-touch-icon" href="/icons/logo-192.png">
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <style>
         /* Base font */
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
 
-        /* Centered modal animation */
-        .modal-fade-in { 
-            animation: fadeIn 0.3s ease-out; 
-        }
-        @keyframes fadeIn { 
-            from { opacity: 0; transform: translateY(10px) scale(0.98); } 
-            to { opacity: 1; transform: translateY(0) scale(1); } 
-        }
+        /* Modal animations */
+        .modal-fade-in { animation: fadeIn 0.3s ease-out; }
+        .modal-sheet-content { animation: slideUp 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        @media (min-width: 768px) { .modal-sheet-content { animation: fadeIn 0.3s ease-out; } }
+        @keyframes fadeIn { from { opacity:0; transform: translateY(10px) scale(0.98);} to { opacity:1; transform: translateY(0) scale(1);} }
+        @keyframes slideUp { from { transform: translateY(100%);} to { transform: translateY(0);} }
 
-        /* Bottom Sheet Modal Animation */
-        .modal-sheet-content {
-            animation: slideUp 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-        }
-        /* On desktop, override with the fade-in animation */
-        @media (min-width: 768px) { /* md breakpoint */
-            .modal-sheet-content {
-                animation: fadeIn 0.3s ease-out;
-            }
-        }
+        /* Toast notifications */
+        .toast-show { animation: slideIn 0.3s ease-out, fadeOut 0.3s ease-in 2.7s forwards; }
+        @keyframes slideIn { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
+        @keyframes fadeOut { from { opacity:1; transform: translateY(0); } 90% { opacity:1; transform: translateY(0); } to { opacity:0; transform: translateY(20px); } }
 
-        /* Toast animation */
-        .toast-show { 
-            animation: slideIn 0.3s ease-out, fadeOut 0.3s ease-in 2.7s forwards; 
-        }
-        @keyframes slideIn { 
-            from { opacity: 0; transform: translateY(20px); } 
-            to { opacity: 1; transform: translateY(0); } 
-        }
-        @keyframes fadeOut { 
-            from { opacity: 1; transform: translateY(0); } 
-            90% { opacity: 1; transform: translateY(0); } 
-            to { opacity: 0; transform: translateY(20px); } 
-        }
+        /* Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width:6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background:#f1f1f1; border-radius:10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background:#c1c1c1; border-radius:10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background:#a8a8a8; }
 
-        /* Custom scrollbar for modal content */
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
-        
-        /* Customer card hover effect (for desktop) */
-        .customer-card { 
-            transition: all 0.3s ease; 
-        }
+        /* Customer card hover */
+        .customer-card { transition: all 0.3s ease; }
         @media (hover: hover) {
-            .customer-card:hover { 
-                transform: translateY(-4px); 
-                box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); /* shadow-lg */
-            }
+            .customer-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
         }
 
-        /* Status dot styles */
-        .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
-        .status-pending, .status-postponed { background-color: #f59e0b; }
-        .status-paid, .status-completed { background-color: #10b981; }
-        .status-overdue { background-color: #ef4444; }
+        /* Status dots */
+        .status-dot { display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px; }
+        .status-pending, .status-postponed { background-color:#f59e0b; }
+        .status-paid, .status-completed { background-color:#10b981; }
+        .status-overdue { background-color:#ef4444; }
 
-        /* Segmented control styles */
-        .segmented-control { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border-radius: 0.375rem; overflow: hidden; border: 1px solid #D1D5DB; }
-        .segmented-control-btn { padding: 0.5rem 0.25rem; font-size: 0.875rem; font-weight: 500; color: #4B5563; background-color: #ffffff; border-left: 1px solid #D1D5DB; transition: all 0.2s ease-in-out; text-align: center; }
-        .segmented-control-btn:first-child { border-left: none; }
-        .segmented-control-btn.active { color: #ffffff; background-color: #2563EB; border-color: #2563EB; }
-        .segmented-control-btn:not(.active):hover { background-color: #F9FAFB; }
+        /* Segmented control */
+        .segmented-control { display:grid; grid-auto-flow:column; grid-auto-columns:1fr; border-radius:0.375rem; overflow:hidden; border:1px solid #D1D5DB; }
+        .segmented-control-btn { padding:0.5rem 0.25rem; font-size:0.875rem; font-weight:500; color:#4B5563; background:#fff; border-left:1px solid #D1D5DB; text-align:center; transition:all 0.2s ease-in-out; }
+        .segmented-control-btn:first-child { border-left:none; }
+        .segmented-control-btn.active { color:#fff; background-color:#2563EB; border-color:#2563EB; }
+        .segmented-control-btn:not(.active):hover { background-color:#F9FAFB; }
 
-        /* Filter chip styles */
-        .filter-chip { padding: 0.375rem 1rem; font-size: 0.875rem; font-weight: 500; color: #374151; background-color: #F3F4F6; border-radius: 9999px; cursor: pointer; transition: all 0.2s ease-in-out; white-space: nowrap; }
-        .filter-chip:hover { background-color: #E5E7EB; }
-        .filter-chip.active { color: #ffffff; background-color: #2563EB; }
-        .filter-chip-container { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-        .filter-chip-container::-webkit-scrollbar { display: none; }
+        /* Filter chips */
+        .filter-chip { padding:0.375rem 1rem; font-size:0.875rem; font-weight:500; color:#374151; background:#F3F4F6; border-radius:9999px; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+        .filter-chip:hover { background:#E5E7EB; }
+        .filter-chip.active { color:#fff; background-color:#2563EB; }
+        .filter-chip-container { display:flex; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+        .filter-chip-container::-webkit-scrollbar { display:none; }
+
+        /* Export buttons */
+        .export-btn { display:inline-flex; align-items:center; padding:0.375rem 0.75rem; margin-left:0.5rem; font-size:0.875rem; font-weight:500; border-radius:0.375rem; border:1px solid #D1D5DB; background:white; color:#374151; cursor:pointer; transition:all 0.2s; }
+        .export-btn:hover { background:#F9FAFB; }
+        .export-btn:disabled { background:#F9FAFB; color:#9CA3AF; cursor:not-allowed; opacity:0.6; }
+        .export-btn i { margin-right:0.5rem; }
+        .export-btn:first-of-type i { color:#107c41; }
+        .export-btn:last-of-type i { color:#b30b00; }
+        @media (max-width:640px) { .export-btn-text { display:none; } .export-btn { padding:0.5rem; } .export-btn i { margin-right:0; } }
+
+        /* Loading spinner */
+        .export-btn.loading { position:relative; color:transparent; }
+        .export-btn.loading::after { content:''; position:absolute; width:16px; height:16px; top:50%; left:50%; margin:-8px 0 0 -8px; border:2px solid transparent; border-top:2px solid #2563EB; border-radius:50%; animation:spin 1s linear infinite; }
+        @keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
     </style>
+
+    <script>
+        // Service Worker Registration & Update
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                .then(reg => {
+                    console.log('SW registered: ', reg);
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                showUpdateNotification();
+                            }
+                        });
+                    });
+                }).catch(err => console.log('SW registration failed: ', err));
+            });
+
+            navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
+        }
+
+        // Online/Offline Detection
+        const updateOnlineStatus = () => navigator.onLine ? hideOfflineIndicator() : showOfflineIndicator();
+        const showOfflineIndicator = () => {
+            if (!document.getElementById('offline-indicator')) {
+                const indicator = document.createElement('div');
+                indicator.id = 'offline-indicator';
+                indicator.className = 'offline-indicator fixed top-0 left-0 w-full bg-red-600 text-white text-center py-1 z-50';
+                indicator.textContent = 'You are offline';
+                document.body.appendChild(indicator);
+            }
+        };
+        const hideOfflineIndicator = () => document.getElementById('offline-indicator')?.remove();
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
+
+        // Install Prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallPrompt();
+        });
+        const showInstallPrompt = () => {
+            if (document.querySelector('.install-prompt')) return;
+            const prompt = document.createElement('div');
+            prompt.className = 'install-prompt fixed bottom-5 left-5 bg-white p-4 shadow-lg rounded-lg z-50';
+            prompt.innerHTML = `
+                <div class="text-sm font-semibold text-gray-800 mb-2">Install AJK CRM</div>
+                <p class="text-xs text-gray-600 mb-3">Install this app for better experience</p>
+                <div class="flex space-x-2">
+                    <button id="install-cancel" class="flex-1 px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50">Later</button>
+                    <button id="install-confirm" class="flex-1 px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Install</button>
+                </div>
+            `;
+            document.body.appendChild(prompt);
+            document.getElementById('install-confirm').addEventListener('click', async () => {
+                prompt.remove();
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log('Install prompt outcome:', outcome);
+                    deferredPrompt = null;
+                }
+            });
+            document.getElementById('install-cancel').addEventListener('click', () => prompt.remove());
+        };
+
+        // Update Notification
+        const showUpdateNotification = () => {
+            if (document.querySelector('.update-toast')) return;
+            const toast = document.createElement('div');
+            toast.className = 'update-toast fixed bottom-5 left-5 z-50 px-4 py-3 bg-blue-600 text-white rounded-lg shadow-lg flex items-center';
+            toast.innerHTML = `
+                <i class="fas fa-sync-alt mr-2"></i>
+                <span>New version available!</span>
+                <button id="reload-app" class="ml-4 px-3 py-1 bg-white text-blue-600 text-sm rounded hover:bg-gray-100">Update</button>
+            `;
+            document.body.appendChild(toast);
+            document.getElementById('reload-app').addEventListener('click', () => window.location.reload());
+        };
+    </script>
 </head>
 <body class="bg-gray-50 font-sans antialiased h-screen flex flex-col">
 
     <!-- App Header -->
     <header class="bg-white shadow fixed top-0 left-0 right-0 z-30 h-16">
         <div class="w-full max-w-7xl mx-auto px-4 h-full flex justify-between items-center">
-            <h1 class="text-xl sm:text-2xl font-bold text-gray-800">Customer Management</h1>
-            <button id="logout-btn" class="w-10 h-10 flex items-center justify-center bg-gray-100 text-gray-600 rounded-full hover:bg-red-100 hover:text-red-600 transition duration-200">
-                <i class="fas fa-sign-out-alt"></i>
-            </button>
+            
+            <!-- Left Side -->
+            <div class="flex items-center">
+                <h1 class="text-xl sm:text-2xl font-bold text-gray-800">Customer Management</h1>
+                <!-- Desktop Export Buttons -->
+                <div class="hidden sm:flex items-center ml-4">
+                    <button id="export-csv" class="export-btn">
+                        <i class="fas fa-file-csv"></i> <span class="export-btn-text">Export CSV</span>
+                    </button>
+                    <button id="export-pdf" class="export-btn">
+                        <i class="fas fa-file-pdf"></i> <span class="export-btn-text">Export PDF</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Side -->
+            <div class="flex items-center space-x-2">
+                <!-- Mobile Export Buttons -->
+                <div class="flex sm:hidden items-center space-x-2">
+                    <button id="mobile-export-csv" class="export-btn">
+                        <i class="fas fa-file-csv"></i> <span class="export-btn-text"></span>
+                    </button>
+                    <button id="mobile-export-pdf" class="export-btn">
+                        <i class="fas fa-file-pdf"></i> <span class="export-btn-text"></span>
+                    </button>
+                </div>
+                <!-- Logout Button -->
+                <button id="logout-btn" aria-label="Log out" class="w-10 h-10 flex items-center justify-center bg-gray-100 text-gray-600 rounded-full hover:bg-red-100 hover:text-red-600 transition duration-200">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -111,8 +209,7 @@
     <main class="flex-grow overflow-y-auto pt-16 pb-24 bg-gray-50">
         <div class="w-full max-w-7xl mx-auto p-4 sm:p-6">
             
-            <!-- Stats Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 md:mb-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6 md:mb-8">
                 <div class="bg-white p-4 rounded-lg shadow-sm text-center">
                     <div class="text-2xl font-bold text-blue-600" id="total-customers">0</div>
                     <div class="text-sm text-gray-500">Total Customers</div>
@@ -125,7 +222,15 @@
                     <div class="text-2xl font-bold text-red-600" id="pending-payments">0</div>
                     <div class="text-sm text-gray-500">Pending Payments</div>
                 </div>
-                <div class="bg-white p-4 rounded-lg shadow-sm col-span-2 md:col-span-2 lg:col-span-1">
+                <div class="bg-white p-4 rounded-lg shadow-sm text-center">
+                    <div class="text-2xl font-bold text-purple-600" id="monthly-revenue">€0</div>
+                    <div class="text-sm text-gray-500">Monthly Revenue</div>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-sm text-center">
+                    <div class="text-2xl font-bold text-orange-600" id="upcoming-visits">0</div>
+                    <div class="text-sm text-gray-500">Visits This Week</div>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-sm col-span-2 md:col-span-2 lg:col-span-3">
                     <div class="flex items-center mb-2">
                         <i class="fas fa-robot text-purple-500 mr-2"></i>
                         <h4 class="text-sm font-semibold text-gray-500">Smart Agenda</h4>
@@ -167,57 +272,96 @@
                         <button class="filter-chip" data-filter-group="work" data-value="postponed">Postponed</button>
                     </div>
                 </div>
+
+                <div class="advanced-filters space-y-4 pt-4 border-t border-gray-200">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="date-from" class="block text-sm font-medium text-gray-600">Next Visit From</label>
+                            <input type="date" id="date-from" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="date-to" class="block text-sm font-medium text-gray-600">Next Visit To</label>
+                            <input type="date" id="date-to" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="price-min" class="block text-sm font-medium text-gray-600">Min Price (€)</label>
+                            <input type="number" placeholder="Min €" id="price-min" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="price-max" class="block text-sm font-medium text-gray-600">Max Price (€)</label>
+                            <input type="number" placeholder="Max €" id="price-max" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Customer List Section -->
             <div class="w-full">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-xl sm:text-2xl font-semibold text-gray-700 flex items-center">
-                        <i class="fas fa-users text-blue-500 mr-2"></i>
-                        Customer List
-                    </h2>
+                    <div class="flex items-center space-x-4">
+                        <h2 class="text-xl sm:text-2xl font-semibold text-gray-700 flex items-center">
+                            <i class="fas fa-users text-blue-500 mr-2"></i>
+                            Customer List
+                        </h2>
+                        <div class="view-toggle segmented-control hidden md:grid" style="grid-auto-columns: auto;">
+                            <button class="segmented-control-btn active" data-view="cards" aria-label="Card View"><i class="fas fa-grip-vertical"></i></button>
+                            <button class="segmented-control-btn" data-view="list" aria-label="List View"><i class="fas fa-list"></i></button>
+                            <button class="segmented-control-btn" data-view="calendar" aria-label="Calendar View"><i class="fas fa-calendar-alt"></i></button>
+                        </div>
+                    </div>
                     <div class="text-sm text-gray-500" id="customer-count">Showing 0 customers</div>
                 </div>
                 
-                <!-- Mobile-First Grid -->
                 <div id="customer-card-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                    <!-- No customers message -->
+                    
+                    <div id="loading-spinner" class="hidden col-span-full text-center py-12">
+                        <i class="fas fa-spinner fa-spin text-blue-500 text-4xl"></i>
+                        <p class="text-gray-500 mt-2">Loading customers...</p>
+                    </div>
+
                     <div id="no-customers-msg" class="hidden col-span-full text-center py-12">
                         <i class="fas fa-users text-gray-300 text-5xl mb-4"></i>
                         <h3 class="text-xl font-medium text-gray-500 mb-2">No customers found</h3>
                         <p class="text-gray-400">Tap the <i class="fas fa-plus-circle text-blue-500"></i> button to add your first customer</p>
                     </div>
-                    <!-- Customer cards will be injected here by JS -->
                 </div>
             </div>
         </div>
     </main>
 
     <!-- Floating Action Button (FAB) -->
-    <button id="open-add-modal-btn" class="fixed z-20 bottom-6 right-6 bg-blue-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-110 hover:bg-blue-700">
+    <button id="open-add-modal-btn" aria-label="Add new customer" class="fixed z-20 bottom-6 right-6 bg-blue-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-110 hover:bg-blue-700">
         <i class="fas fa-plus text-2xl"></i>
     </button>
 
-    <!-- Add Customer Modal (Bottom Sheet) -->
-    <div id="add-customer-modal" class="hidden fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black bg-opacity-60">
+    <!-- All Modals (Add, Edit, View, Reminder, Delete, Complete) -->
+    <!-- Add Customer Modal -->
+    <div id="add-customer-modal" class="hidden fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black bg-opacity-60" role="dialog" aria-modal="true">
         <div class="bg-white w-full md:max-w-lg md:rounded-lg rounded-t-2xl max-h-[90vh] flex flex-col modal-sheet-content">
-            <!-- Modal Header -->
             <div class="relative flex justify-between items-center p-5 border-b border-gray-200 flex-shrink-0">
                 <div class="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-gray-300 rounded-full md:hidden"></div>
                 <h3 class="text-xl font-semibold text-gray-800 flex items-center"><i class="fas fa-user-plus text-blue-500 mr-2"></i>Add New Customer</h3>
-                <button class="modal-close-btn text-gray-400 hover:text-gray-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                <button class="modal-close-btn text-gray-400 hover:text-gray-600" aria-label="Close modal"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
-            <!-- Modal Content (Scrollable) -->
             <form id="add-customer-form" class="flex-grow flex flex-col overflow-hidden">
                 <div class="p-6 space-y-4 flex-grow overflow-y-auto custom-scrollbar">
                     <div><label for="name" class="block text-sm font-medium text-gray-600">Name</label><input type="text" id="name" name="name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
                     <div><label for="email" class="block text-sm font-medium text-gray-600">Email</label><input type="email" id="email" name="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
+                    <div><label for="address" class="block text-sm font-medium text-gray-600">Address</label><textarea id="address" name="address" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 123 Main St, Apt 4B, 12345 City"></textarea></div>
                     <div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label for="price" class="block text-sm font-medium text-gray-600">Service Price (€)</label><input type="number" id="price" name="price" min="0" step="0.01" placeholder="e.g., 150.00" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label class="block text-sm font-medium text-gray-600">Price Type</label><input type="hidden" name="price-type" id="add-price-type" value="Fixed"><div class="segmented-control mt-1" data-control-group-for="add-price-type"><button type="button" class="segmented-control-btn active" data-value="Fixed">Fixed</button><button type="button" class="segmented-control-btn" data-value="Hourly">Hourly</button></div></div></div>
                     <div><label class="block text-sm font-medium text-gray-600">Recurring</label><input type="hidden" name="recurring" id="add-recurring" value="None"><div class="segmented-control mt-1" data-control-group-for="add-recurring"><button type="button" class="segmented-control-btn active" data-value="None">None</button><button type="button" class="segmented-control-btn" data-value="Weekly">Weekly</button><button type="button" class="segmented-control-btn" data-value="Bi-weekly">Bi-weekly</button><button type="button" class="segmented-control-btn" data-value="Monthly">Monthly</button></div></div>
                     <div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label class="block text-sm font-medium text-gray-600">Payment Status</label><input type="hidden" name="payment-status" id="add-payment-status" value="Pending"><div class="segmented-control mt-1" data-control-group-for="add-payment-status"><button type="button" class="segmented-control-btn active" data-value="Pending">Pending</button><button type="button" class="segmented-control-btn" data-value="Paid">Paid</button><button type="button" class="segmented-control-btn" data-value="Overdue">Overdue</button></div></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label class="block text-sm font-medium text-gray-600">Work Status</label><input type="hidden" name="work-status" id="add-work-status" value="Pending"><div class="segmented-control mt-1" data-control-group-for="add-work-status"><button type="button" class="segmented-control-btn active" data-value="Pending">Pending</button><button type="button" class="segmented-control-btn" data-value="Completed">Completed</button><button type="button" class="segmented-control-btn" data-value="Postponed">Postponed</button></div></div></div>
-                    <div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label for="next-visit" class="block text-sm font-medium text-gray-600">Next Visit Date</label><input type="date" id="next-visit" name="next-visit" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label for="last-payment" class="block text-sm font-medium text-gray-600">Last Payment Date</label><input type="date" id="last-payment" name="last-payment" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div></div>
+                    <div class="flex flex-col sm:flex-row sm:space-x-4">
+                        <div class="w-full sm:w-1/2"><label for="next-visit" class="block text-sm font-medium text-gray-600">Next Visit Date</label><input type="date" id="next-visit" name="next-visit" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
+                        <div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label for="next-visit-time" class="block text-sm font-medium text-gray-600">Visit Time</label><input type="time" id="next-visit-time" name="next-visit-time" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row sm:space-x-4">
+                        <div class="w-full sm:w-1/2"><label for="last-payment" class="block text-sm font-medium text-gray-600">Last Payment Date</label><input type="date" id="last-payment" name="last-payment" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
+                    </div>
+                    <div><label for="notes" class="block text-sm font-medium text-gray-600">Notes</label><textarea id="notes" name="notes" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Add service notes, customer preferences..."></textarea></div>
                 </div>
-                <!-- Modal Footer -->
                 <div class="flex justify-end items-center p-5 border-t border-gray-200 bg-gray-50 flex-shrink-0">
                     <button type="button" class="modal-cancel-btn mr-3 px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">Cancel</button>
                     <button type="submit" class="px-5 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-md hover:bg-blue-700 transition duration-200 flex items-center"><i class="fas fa-plus-circle mr-2"></i>Add Customer</button>
@@ -226,23 +370,20 @@
         </div>
     </div>
 
-    <!-- Send Reminder Modal (Bottom Sheet) -->
-    <div id="reminder-modal" class="hidden fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black bg-opacity-60">
+    <!-- Send Reminder Modal -->
+    <div id="reminder-modal" class="hidden fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black bg-opacity-60" role="dialog" aria-modal="true">
         <div class="bg-white rounded-lg shadow-2xl w-full max-w-md mx-auto modal-sheet-content">
-             <!-- Modal Header -->
             <div class="relative flex justify-between items-center p-5 border-b border-gray-200 flex-shrink-0">
                 <div class="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-gray-300 rounded-full md:hidden"></div>
                 <h3 class="text-xl font-semibold text-gray-800 flex items-center"><i class="fas fa-envelope text-blue-500 mr-2"></i>Send Service Reminder</h3>
-                <button class="modal-close-btn text-gray-400 hover:text-gray-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                <button class="modal-close-btn text-gray-400 hover:text-gray-600" aria-label="Close modal"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
-            <!-- Modal Content (Scrollable) -->
             <div class="p-6 space-y-4 overflow-y-auto custom-scrollbar">
                 <div class="bg-blue-50 p-4 rounded-lg"><div class="flex items-center mb-2"><i class="fas fa-user text-blue-500 mr-2"></i><span class="font-medium">Customer:</span></div><p id="modal-customer-name" class="text-gray-700 font-semibold"></p><p id="modal-customer-email" class="text-gray-600 text-sm"></p></div>
                 <div class="bg-yellow-50 p-4 rounded-lg"><div class="flex items-center mb-2"><i class="fas fa-calendar-alt text-yellow-500 mr-2"></i><span class="font-medium">Service Date:</span></div><p id="modal-visit-date" class="text-gray-700 font-semibold"></p></div>
                 <div><label class="block text-sm font-medium text-gray-600 mb-1">Email Language</label><input type="hidden" id="email-language" value="en"><div class="segmented-control" data-control-group-for="email-language"><button type="button" class="segmented-control-btn active" data-value="en">English 🇬🇧</button><button type="button" class="segmented-control-btn" data-value="de">German 🇩🇪</button></div></div>
                 <div><label for="optional-message" class="block text-sm font-medium text-gray-600 mb-1">Optional Message</label><textarea id="optional-message" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Add a personalized message..."></textarea></div>
             </div>
-             <!-- Modal Footer -->
             <div class="flex justify-end items-center p-5 border-t border-gray-200 bg-gray-50 rounded-b-lg space-x-3 flex-shrink-0">
                 <button class="modal-cancel-btn px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">Cancel</button>
                 <button id="modal-confirm-btn" class="px-5 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-md hover:bg-blue-700 transition duration-200 flex items-center"><i class="fas fa-paper-plane mr-2"></i>Send Email</button>
@@ -250,56 +391,64 @@
         </div>
     </div>
 
-    <!-- View Details Modal (Bottom Sheet) -->
-    <div id="view-details-modal" class="hidden fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black bg-opacity-60">
+    <!-- View Details Modal -->
+    <div id="view-details-modal" class="hidden fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black bg-opacity-60" role="dialog" aria-modal="true">
         <div class="bg-white rounded-lg shadow-2xl w-full max-w-lg mx-auto modal-sheet-content">
-            <!-- Modal Header -->
             <div class="relative flex justify-between items-center p-5 border-b border-gray-200 flex-shrink-0">
                 <div class="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-gray-300 rounded-full md:hidden"></div>
                 <h3 class="text-xl font-semibold text-gray-800 flex items-center"><i class="fas fa-id-card text-blue-500 mr-2"></i>Customer Details</h3>
-                <button class="modal-close-btn text-gray-400 hover:text-gray-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                <button class="modal-close-btn text-gray-400 hover:text-gray-600" aria-label="Close modal"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
-            <!-- Modal Content (Scrollable) -->
             <div class="p-6 space-y-4 overflow-y-auto custom-scrollbar">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="col-span-1 sm:col-span-2"><label class="block text-sm font-medium text-gray-500">Name</label><p id="view-name" class="mt-1 text-lg font-semibold text-gray-900"></p></div>
-                    <div><label class="block text-sm font-medium text-gray-500">Email</label><p id="view-email" class="mt-1 text-sm text-gray-800"></p></div>
+                    <div><label class="block text-sm font-medium text-gray-500">Email</label><p id="view-email" class="mt-1 text-sm text-gray-800 break-words"></p></div>
+                    <div class="col-span-1 sm:col-span-2"><label class="block text-sm font-medium text-gray-500">Address</label><p id="view-address" class="mt-1 text-sm text-gray-800 whitespace-pre-wrap"></p></div>
                     <div><label class="block text-sm font-medium text-gray-500">Next Visit Date</label><p id="view-next-visit" class="mt-1 text-sm text-gray-800"></p></div>
+                    <div><label class="block text-sm font-medium text-gray-500">Visit Time</label><p id="view-visit-time" class="mt-1 text-sm text-gray-800"></p></div>
                     <div><label class="block text-sm font-medium text-gray-500">Service Price</label><p id="view-price" class="mt-1 text-lg font-semibold text-blue-600"></p></div>
                     <div><label class="block text-sm font-medium text-gray-500">Price Type</label><p id="view-price-type" class="mt-1 text-sm text-gray-800"></p></div>
                     <div><label class="block text-sm font-medium text-gray-600">Recurring</label><p id="view-recurring" class="mt-1 text-sm font-medium text-gray-800"></p></div>
                     <div><label class="block text-sm font-medium text-gray-500">Payment Status</label><p id="view-payment-status" class="mt-1 text-sm text-gray-800"></p></div>
                     <div><label class="block text-sm font-medium text-gray-500">Work Status</label><p id="view-work-status" class="mt-1 text-sm text-gray-800"></p></div>
                     <div class="col-span-1 sm:col-span-2"><label class="block text-sm font-medium text-gray-500">Last Payment Date</label><p id="view-last-payment" class="mt-1 text-sm text-gray-800"></p></div>
+                    <div class="col-span-1 sm:col-span-2 pt-4 border-t border-gray-100">
+                        <label class="block text-sm font-medium text-gray-500">Notes</label>
+                        <p id="view-notes" class="mt-1 text-sm text-gray-800 whitespace-pre-wrap"></p>
+                    </div>
                 </div>
             </div>
-            <!-- Modal Footer -->
             <div class="flex justify-end items-center p-5 border-t border-gray-200 bg-gray-50 rounded-b-lg flex-shrink-0">
                 <button class="modal-cancel-btn px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">Close</button>
             </div>
         </div>
     </div>
 
-    <!-- Edit Customer Modal (Bottom Sheet) -->
-    <div id="edit-customer-modal" class="hidden fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black bg-opacity-60">
+    <!-- Edit Customer Modal -->
+    <div id="edit-customer-modal" class="hidden fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black bg-opacity-60" role="dialog" aria-modal="true">
         <div class="bg-white rounded-lg shadow-2xl w-full max-w-lg mx-auto modal-sheet-content">
-            <!-- Modal Header -->
             <div class="relative flex justify-between items-center p-5 border-b border-gray-200 flex-shrink-0">
                 <div class="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-gray-300 rounded-full md:hidden"></div>
                 <h3 class="text-xl font-semibold text-gray-800 flex items-center"><i class="fas fa-edit text-blue-500 mr-2"></i>Edit Customer</h3>
-                <button class="modal-close-btn text-gray-400 hover:text-gray-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                <button class="modal-close-btn text-gray-400 hover:text-gray-600" aria-label="Close modal"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
-            <!-- Modal Content (Scrollable) -->
             <form id="edit-customer-form" class="flex-grow flex flex-col overflow-hidden">
                 <div class="p-6 space-y-4 flex-grow overflow-y-auto custom-scrollbar">
                     <div><label for="edit-name" class="block text-sm font-medium text-gray-600">Name</label><input type="text" id="edit-name" name="name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
                     <div><label for="edit-email" class="block text-sm font-medium text-gray-600">Email</label><input type="email" id="edit-email" name="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
+                    <div><label for="edit-address" class="block text-sm font-medium text-gray-600">Address</label><textarea id="edit-address" name="address" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea></div>
                     <div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label for="edit-price" class="block text-sm font-medium text-gray-600">Service Price (€)</label><input type="number" id="edit-price" name="price" min="0" step="0.01" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label class="block text-sm font-medium text-gray-600">Price Type</label><input type="hidden" name="price-type" id="edit-price-type"><div class="segmented-control mt-1" data-control-group-for="edit-price-type"><button type="button" class="segmented-control-btn" data-value="Fixed">Fixed</button><button type="button" class="segmented-control-btn" data-value="Hourly">Hourly</button></div></div></div>
                     <div><label class="block text-sm font-medium text-gray-600">Recurring</label><input type="hidden" name="recurring" id="edit-recurring"><div class="segmented-control mt-1" data-control-group-for="edit-recurring"><button type="button" class="segmented-control-btn" data-value="None">None</button><button type="button" class="segmented-control-btn" data-value="Weekly">Weekly</button><button type="button" class="segmented-control-btn" data-value="Bi-weekly">Bi-weekly</button><button type="button" class="segmented-control-btn" data-value="Monthly">Monthly</button></div></div>
                     <div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label class="block text-sm font-medium text-gray-600">Payment Status</label><input type="hidden" name="payment-status" id="edit-payment-status"><div class="segmented-control mt-1" data-control-group-for="edit-payment-status"><button type="button" class="segmented-control-btn" data-value="Pending">Pending</button><button type="button" class="segmented-control-btn" data-value="Paid">Paid</button><button type="button" class="segmented-control-btn" data-value="Overdue">Overdue</button></div></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label class="block text-sm font-medium text-gray-600">Work Status</label><input type="hidden" name="work-status" id="edit-work-status"><div class="segmented-control mt-1" data-control-group-for="edit-work-status"><button type="button" class="segmented-control-btn" data-value="Pending">Pending</button><button type="button" class="segmented-control-btn" data-value="Completed">Completed</button><button type="button" class="segmented-control-btn" data-value="Postponed">Postponed</button></div></div></div>
-                    <div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label for="edit-next-visit" class="block text-sm font-medium text-gray-600">Next Visit Date</label><input type="date" id="edit-next-visit" name="next-visit" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label for="edit-last-payment" class="block text-sm font-medium text-gray-600">Last Payment Date</label><input type="date" id="edit-last-payment" name="last-payment" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div></div>
+                    <div class="flex flex-col sm:flex-row sm:space-x-4">
+                        <div class="w-full sm:w-1/2"><label for="edit-next-visit" class="block text-sm font-medium text-gray-600">Next Visit Date</label><input type="date" id="edit-next-visit" name="next-visit" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
+                        <div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label for="edit-next-visit-time" class="block text-sm font-medium text-gray-600">Visit Time</label><input type="time" id="edit-next-visit-time" name="next-visit-time" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row sm:space-x-4">
+                        <div class="w-full sm:w-1/2"><label for="edit-last-payment" class="block text-sm font-medium text-gray-600">Last Payment Date</label><input type="date" id="edit-last-payment" name="last-payment" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
+                    </div>
+                    <div><label for="edit-notes" class="block text-sm font-medium text-gray-600">Notes</label><textarea id="edit-notes" name="notes" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea></div>
                 </div>
-                <!-- Modal Footer -->
                 <div class="flex justify-end items-center p-5 border-t border-gray-200 bg-gray-50 flex-shrink-0">
                     <button type="button" class="modal-cancel-btn mr-3 px-5 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">Cancel</button>
                     <button type="submit" class="px-5 py-2 bg-green-600 text-white font-semibold rounded-md shadow-md hover:bg-green-700 transition duration-200 flex items-center"><i class="fas fa-save mr-2"></i>Save Changes</button>
@@ -308,13 +457,13 @@
         </div>
     </div>
 
-    <!-- Delete Confirm Modal (Centered) -->
-    <div id="delete-confirm-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4">
+    <!-- Delete Confirm Modal -->
+    <div id="delete-confirm-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4" role="dialog" aria-modal="true">
         <div class="bg-white rounded-lg shadow-2xl w-full max-w-sm mx-auto modal-fade-in"><div class="p-6 text-center"><div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i></div><h3 class="text-xl font-semibold text-gray-800 mb-2">Are you sure?</h3><p class="text-gray-600 mb-6">Do you really want to delete <strong id="delete-customer-name"></strong>? This process cannot be undone.</p><div class="flex justify-center items-center space-x-4"><button id="delete-cancel-btn" class="px-6 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">Cancel</button><button id="delete-confirm-btn" class="px-6 py-2 bg-red-600 text-white font-semibold rounded-md shadow-md hover:bg-red-700 transition duration-200 flex items-center"><i class="fas fa-trash mr-2"></i>Delete</button></div></div></div>
     </div>
 
-    <!-- Complete Job Modal (Centered) -->
-    <div id="complete-job-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4">
+    <!-- Complete Job Modal -->
+    <div id="complete-job-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4" role="dialog" aria-modal="true">
         <div class="bg-white rounded-lg shadow-2xl w-full max-w-sm mx-auto modal-fade-in"><div class="p-6 text-center"><div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-check-circle text-green-500 text-2xl"></i></div><h3 class="text-xl font-semibold text-gray-800 mb-2">Confirm Completion</h3><p class="text-gray-600 mb-6">Mark job for <strong id="complete-customer-name"></strong> as complete and schedule next visit?</p><div class="flex justify-center items-center space-x-4"><button class="modal-cancel-btn px-6 py-2 bg-gray-200 text-gray-700 font-semibold rounded-md shadow-sm hover:bg-gray-300 transition duration-200">Cancel</button><button id="complete-confirm-btn" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-md shadow-md hover:bg-green-700 transition duration-200 flex items-center"><i class="fas fa-check mr-2"></i>Confirm</button></div></div></div>
     </div>
 
@@ -339,6 +488,7 @@
             // --- DOM Elements ---
             const cardGrid = document.getElementById('customer-card-grid');
             const noCustomersMsg = document.getElementById('no-customers-msg');
+            const loadingSpinner = document.getElementById('loading-spinner');
             const toast = document.getElementById('toast-notification');
             const toastMessage = document.getElementById('toast-message');
             const toastIcon = document.getElementById('toast-icon');
@@ -350,6 +500,14 @@
             const smartAgendaText = document.getElementById('smart-agenda-text');
             const logoutBtn = document.getElementById('logout-btn');
             
+            const monthlyRevenue = document.getElementById('monthly-revenue');
+            const upcomingVisits = document.getElementById('upcoming-visits');
+            
+            const exportCsvBtn = document.getElementById('export-csv');
+            const exportPdfBtn = document.getElementById('export-pdf');
+            const mobileExportCsvBtn = document.getElementById('mobile-export-csv');
+            const mobileExportPdfBtn = document.getElementById('mobile-export-pdf');
+
             // Modal Elements
             const openAddModalBtn = document.getElementById('open-add-modal-btn');
             const addCustomerModal = document.getElementById('add-customer-modal');
@@ -377,8 +535,14 @@
                     return new Error('Unauthorized');
                 }
                 try {
-                    const err = await response.json();
-                    return new Error(err.message || `Server error: ${response.status}`);
+                    // Try to parse JSON error message from server
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        const errorData = await response.json();
+                        return new Error(errorData.message || `Server error: ${response.status}`);
+                    }
+                    // Fallback for non-JSON errors
+                    return new Error(`Server error: ${response.status}`);
                 } catch (e) {
                     return new Error(`Server error: ${response.status}`);
                 }
@@ -389,6 +553,13 @@
                 if (!dateString) return 'N/A';
                 const date = new Date(dateString);
                 return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+            }
+            function formatTime(timeString) {
+                if (!timeString) return 'N/A';
+                if (timeString.match(/^\d{2}:\d{2}$/)) {
+                    return timeString;
+                }
+                return 'N/A';
             }
             function formatCurrency(value, priceType) {
                 if (value == null || isNaN(Number(value))) return 'N/A';
@@ -417,24 +588,43 @@
             function showToast(message, type = 'success') {
                 toastMessage.textContent = message;
                 toast.classList.remove('bg-green-600', 'bg-red-600', 'bg-blue-600', 'hidden');
-                if (type === 'success') { 
-                    toast.classList.add('bg-green-600'); 
-                    toastIcon.className = 'fas fa-check-circle mr-2'; 
-                } else if (type === 'error') { 
-                    toast.classList.add('bg-red-600'); 
-                    toastIcon.className = 'fas fa-exclamation-triangle mr-2'; 
-                } else { 
-                    toast.classList.add('bg-blue-600'); 
-                    toastIcon.className = 'fas fa-info-circle mr-2'; 
+                if (type === 'success') {  
+                    toast.classList.add('bg-green-600');  
+                    toastIcon.className = 'fas fa-check-circle mr-2';  
+                } else if (type === 'error') {  
+                    toast.classList.add('bg-red-600');  
+                    toastIcon.className = 'fas fa-exclamation-triangle mr-2';  
+                } else {  
+                    toast.classList.add('bg-blue-600');  
+                    toastIcon.className = 'fas fa-info-circle mr-2';  
                 }
                 toast.classList.add('toast-show');
-                setTimeout(() => { 
-                    toast.classList.add('hidden'); 
-                    toast.classList.remove('toast-show'); 
+                setTimeout(() => {  
+                    toast.classList.add('hidden');  
+                    toast.classList.remove('toast-show');  
                 }, 3000);
+            }
+            function showLoadingSpinner(show) {
+                if (show) {
+                    cardGrid.innerHTML = '';
+                    loadingSpinner.classList.remove('hidden');
+                    cardGrid.appendChild(loadingSpinner);
+                    noCustomersMsg.classList.add('hidden');
+                } else {
+                    loadingSpinner.classList.add('hidden');
+                    if (cardGrid.contains(loadingSpinner)) {
+                        cardGrid.removeChild(loadingSpinner);
+                    }
+                }
             }
             function validateCustomerData(customer) {
                 const today = new Date(APP_TODAY + 'T00:00:00Z').toISOString().split('T')[0];
+                
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (customer.email && !emailRegex.test(customer.email)) {
+                    return 'Error: Please enter a valid email address.';
+                }
+
                 if (customer.nextVisit && customer.nextVisit < today) return 'Error: Next visit date cannot be in the past.';
                 if (customer.lastPayment && customer.lastPayment > today) return 'Error: Last payment date cannot be in the future.';
                 return null;
@@ -443,15 +633,94 @@
                 totalCustomers.textContent = customers.length;
                 completedJobs.textContent = customers.filter(c => c.workStatus === 'Completed').length;
                 pendingPayments.textContent = customers.filter(c => c.paymentStatus === 'Pending' || c.paymentStatus === 'Overdue').length;
+
+                const today = new Date(APP_TODAY + 'T00:00:00Z');
+                const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                const startOfWeek = new Date(today);
+                startOfWeek.setDate(today.getDate() - today.getDay());
+                const endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+                const revenue = customers
+                    .filter(c => {
+                        if (c.workStatus !== 'Completed' || !c.lastPayment) return false;
+                        const lastPaymentDate = new Date(c.lastPayment + 'T00:00:00Z');
+                        return lastPaymentDate >= startOfMonth;
+                    })
+                    .reduce((sum, c) => sum + (c.price || 0), 0);
+                
+                monthlyRevenue.textContent = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(revenue);
+
+                const visits = customers
+                    .filter(c => {
+                        const nextVisitDate = new Date(c.nextVisit + 'T00:00:00Z');
+                        return nextVisitDate >= startOfWeek && nextVisitDate <= endOfWeek;
+                    }).length;
+                
+                upcomingVisits.textContent = visits;
             }
+
+            // Enhanced Filter Info Function
+            function getActiveFilterInfo() {
+                let filters = [];
+                const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+            
+                if (activePaymentFilter !== 'all') {
+                    filters.push(`Payment: ${cap(activePaymentFilter)}`);
+                }
+                if (activeWorkFilter !== 'all') {
+                    filters.push(`Work: ${cap(activeWorkFilter)}`);
+                }
+            
+                const dateFrom = document.getElementById('date-from').value;
+                const dateTo = document.getElementById('date-to').value;
+                if (dateFrom && dateTo) {
+                    filters.push(`Visit: ${dateFrom} to ${dateTo}`);
+                } else if (dateFrom) {
+                    filters.push(`Visit: From ${dateFrom}`);
+                } else if (dateTo) {
+                    filters.push(`Visit: Until ${dateTo}`);
+                }
+            
+                const priceMin = document.getElementById('price-min').value;
+                const priceMax = document.getElementById('price-max').value;
+                if (priceMin && priceMax) {
+                    filters.push(`Price: €${priceMin} - €${priceMax}`);
+                } else if (priceMin) {
+                    filters.push(`Price: Min €${priceMin}`);
+                } else if (priceMax) {
+                    filters.push(`Price: Max €${priceMax}`);
+                }
+            
+                const searchTerm = searchInput.value;
+                if (searchTerm) {
+                    filters.push(`Search: "${searchTerm}"`);
+                }
+            
+                if (filters.length === 0) return "Showing all customers";
+                return `Filters: ${filters.join(' | ')}`;
+            }
+
             function filterCustomers() {
                 const searchTerm = searchInput.value.toLowerCase();
+                const dateFrom = document.getElementById('date-from').value;
+                const dateTo = document.getElementById('date-to').value;
+                const priceMin = parseFloat(document.getElementById('price-min').value) || 0;
+                const priceMax = parseFloat(document.getElementById('price-max').value) || Infinity;
+
                 filteredCustomers = customers.filter(customer => {
-                    const matchesSearch = (customer.name && customer.name.toLowerCase().includes(searchTerm)) || 
-                                        (customer.email && customer.email.toLowerCase().includes(searchTerm));
+                    const matchesSearch = (customer.name && customer.name.toLowerCase().includes(searchTerm)) ||  
+                                          (customer.email && customer.email.toLowerCase().includes(searchTerm)) ||
+                                          (customer.address && customer.address.toLowerCase().includes(searchTerm)) ||
+                                          (customer.notes && customer.notes.toLowerCase().includes(searchTerm));
                     const matchesPayment = activePaymentFilter === 'all' || (customer.paymentStatus && customer.paymentStatus.toLowerCase() === activePaymentFilter);
                     const matchesWork = activeWorkFilter === 'all' || (customer.workStatus && customer.workStatus.toLowerCase() === activeWorkFilter);
-                    return matchesSearch && matchesPayment && matchesWork;
+
+                    const matchesDate = (!dateFrom || customer.nextVisit >= dateFrom) && (!dateTo || customer.nextVisit <= dateTo);
+                    const customerPrice = customer.price || 0;
+                    const matchesPrice = (customerPrice >= priceMin) && (customerPrice <= priceMax);
+
+                    return matchesSearch && matchesPayment && matchesWork && matchesDate && matchesPrice;
                 });
                 renderCards();
             }
@@ -461,16 +730,16 @@
                 viewDetailsModal.classList.add('hidden');
                 editCustomerModal.classList.add('hidden');
                 deleteConfirmModal.classList.add('hidden');
-                completeJobModal.classList.add('hidden'); 
+                completeJobModal.classList.add('hidden');  
                 selectedCustomerId = null;
             }
             function setDefaultVisitDate() {
                 const today = new Date(APP_TODAY + 'T00:00:00Z');
                 today.setUTCDate(today.getUTCDate() + 7);
                 addForm.elements['next-visit'].value = today.toISOString().split('T')[0];
+                addForm.elements['next-visit-time'].value = '10:00';
             }
             
-            // --- Segmented Control Functions ---
             function initSegmentedControls() {
                 const controlGroups = document.querySelectorAll('[data-control-group-for]');
                 controlGroups.forEach(group => {
@@ -525,7 +794,6 @@
                 });
             }
 
-            // --- Filter Chip Function ---
             function initFilterChips() {
                 const chipContainers = [
                     document.getElementById('payment-filter-chips'),
@@ -549,24 +817,67 @@
                 });
             }
 
+            // --- PERFORMANCE OPTIMIZATIONS (from snippet) ---
+            
+            // Debounce search input
+            function debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+
+            // Preload critical data
+            function preloadCriticalData() {
+                if ('connection' in navigator) {
+                    if (navigator.connection.saveData) {
+                        // Don't preload on data-saver mode
+                        return;
+                    }
+                }
+                
+                // Preload upcoming visits data
+                fetch(`${API_URL}/customers?limit=5&sort=nextVisit`)
+                    .then(response => {
+                        if (!response.ok) return; // Don't throw error, just fail silently
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data) {
+                            // Store in session storage for quick access
+                            sessionStorage.setItem('preloadedCustomers', JSON.stringify(data));
+                        }
+                    })
+                    .catch(console.error); // Log error but don't disrupt app
+            }
+
+
             // --- CORE FUNCTIONS (API) ---
 
             async function loadAgendaSummary() {
                 try {
                     const response = await fetch(`${API_URL}/agenda-summary`, { credentials: 'include' });
                     if (!response.ok) {
-                        throw new Error('Failed to load summary');
+                        throw await checkAuth(response);
                     }
                     const data = await response.json();
                     smartAgendaText.textContent = data.summary;
                 } catch (error) {
                     console.error("Error loading agenda summary:", error);
-                    smartAgendaText.textContent = "Could not load AI summary.";
-                    smartAgendaText.classList.add('text-red-500');
+                    if (error.message !== 'Unauthorized') { 
+                        smartAgendaText.textContent = "Could not load AI summary.";
+                        smartAgendaText.classList.add('text-red-500');
+                    }
                 }
             }
 
             async function loadCustomers() {
+                showLoadingSpinner(true); 
                 try {
                     const response = await fetch(`${API_URL}/customers`, { credentials: 'include' });
                     if (!response.ok) throw await checkAuth(response);
@@ -578,10 +889,13 @@
                     if (error.message !== 'Unauthorized') {
                         showToast(error.message, 'error');
                     }
+                } finally {
+                    showLoadingSpinner(false);
                 }
             }
 
             function renderCards() {
+                showLoadingSpinner(false);
                 cardGrid.innerHTML = '';
                 if (filteredCustomers.length === 0) {
                     noCustomersMsg.classList.remove('hidden');
@@ -592,7 +906,6 @@
                 noCustomersMsg.classList.add('hidden');
                 customerCount.textContent = `Showing ${filteredCustomers.length} of ${customers.length} customers`;
                 
-                // Sort customers: upcoming visits first
                 filteredCustomers.sort((a, b) => {
                     const dateA = new Date(a.nextVisit + 'T00:00:00Z');
                     const dateB = new Date(b.nextVisit + 'T00:00:00Z');
@@ -651,10 +964,14 @@
                 const formData = new FormData(addForm);
                 const newCustomerData = {
                     name: formData.get('name'), email: formData.get('email'),
+                    address: formData.get('address') || null, 
                     price: parseFloat(formData.get('price')) || null, priceType: formData.get('price-type'),
                     recurring: formData.get('recurring'), paymentStatus: formData.get('payment-status'),
-                    workStatus: formData.get('work-status'), nextVisit: formData.get('next-visit'),
-                    lastPayment: formData.get('last-payment') || null
+                    workStatus: formData.get('work-status'),  
+                    nextVisit: formData.get('next-visit'),
+                    visitTime: formData.get('next-visit-time') || null,
+                    lastPayment: formData.get('last-payment') || null,
+                    notes: formData.get('notes') || null
                 };
                 const validationError = validateCustomerData(newCustomerData);
                 if (validationError) return showToast(validationError, 'error');
@@ -667,15 +984,14 @@
                     await loadCustomers();
                     addForm.reset();
                     resetSegmentedControls(addForm);
-                    hideAllModals(); 
+                    hideAllModals();  
                     showToast('Customer added successfully!', 'success');
-                    await loadAgendaSummary(); // Refresh AI summary
+                    await loadAgendaSummary();
                 } catch (error) {
                     if (error.message !== 'Unauthorized') showToast(error.message, 'error');
                 }
             }
 
-            // --- Modal Open Functions ---
             function openAddModal() {
                 addForm.reset();
                 resetSegmentedControls(addForm);
@@ -688,9 +1004,10 @@
                 if (!customer) return;
                 document.getElementById('modal-customer-name').textContent = customer.name;
                 document.getElementById('modal-customer-email').textContent = customer.email;
-                document.getElementById('modal-visit-date').textContent = formatDate(customer.nextVisit);
+                const visitTime = customer.visitTime ? ` at ${formatTime(customer.visitTime)}` : '';
+                document.getElementById('modal-visit-date').textContent = formatDate(customer.nextVisit) + visitTime;
                 document.getElementById('optional-message').value = '';
-                setActiveSegment('email-language', 'en'); 
+                setActiveSegment('email-language', 'en');  
                 reminderModal.classList.remove('hidden');
             }
             function openViewModal(id) {
@@ -698,13 +1015,16 @@
                 if (!customer) return;
                 document.getElementById('view-name').textContent = customer.name;
                 document.getElementById('view-email').textContent = customer.email;
+                document.getElementById('view-address').textContent = customer.address || 'N/A';
                 document.getElementById('view-price').textContent = formatCurrency(customer.price, customer.priceType);
                 document.getElementById('view-price-type').textContent = customer.priceType || 'Fixed';
                 document.getElementById('view-recurring').textContent = customer.recurring;
                 document.getElementById('view-next-visit').textContent = formatDate(customer.nextVisit);
+                document.getElementById('view-visit-time').textContent = formatTime(customer.visitTime);
                 document.getElementById('view-last-payment').textContent = formatDate(customer.lastPayment);
                 document.getElementById('view-payment-status').innerHTML = `<span class="${getStatusBadge(customer.paymentStatus)}">${getStatusDot(customer.paymentStatus)}${customer.paymentStatus || 'N/A'}</span>`;
                 document.getElementById('view-work-status').innerHTML = `<span class="${getStatusBadge(customer.workStatus)}">${getStatusDot(customer.workStatus)}${customer.workStatus || 'N/A'}</span>`;
+                document.getElementById('view-notes').textContent = customer.notes || 'N/A';
                 viewDetailsModal.classList.remove('hidden');
             }
             function openEditModal(id) {
@@ -713,9 +1033,12 @@
                 if (!customer) return;
                 document.getElementById('edit-name').value = customer.name;
                 document.getElementById('edit-email').value = customer.email;
+                document.getElementById('edit-address').value = customer.address;
                 document.getElementById('edit-price').value = customer.price;
                 document.getElementById('edit-next-visit').value = customer.nextVisit;
+                document.getElementById('edit-next-visit-time').value = customer.visitTime;
                 document.getElementById('edit-last-payment').value = customer.lastPayment;
+                document.getElementById('edit-notes').value = customer.notes;
                 setActiveSegment('edit-price-type', customer.priceType);
                 setActiveSegment('edit-recurring', customer.recurring);
                 setActiveSegment('edit-payment-status', customer.paymentStatus);
@@ -737,16 +1060,19 @@
                 completeJobModal.classList.remove('hidden');
             }
 
-            // --- Modal Action Handlers ---
             async function handleEditFormSubmit(event) {
                 event.preventDefault();
                 const formData = new FormData(editForm);
                 const updatedCustomerData = {
                     name: formData.get('name'), email: formData.get('email'),
+                    address: formData.get('address') || null, 
                     price: parseFloat(formData.get('price')) || null, priceType: formData.get('price-type'),
                     recurring: formData.get('recurring'), paymentStatus: formData.get('payment-status'),
-                    workStatus: formData.get('work-status'), nextVisit: formData.get('next-visit'),
-                    lastPayment: formData.get('last-payment') || null
+                    workStatus: formData.get('work-status'),  
+                    nextVisit: formData.get('next-visit'),
+                    visitTime: formData.get('next-visit-time') || null,
+                    lastPayment: formData.get('last-payment') || null,
+                    notes: formData.get('notes') || null
                 };
                 const validationError = validateCustomerData(updatedCustomerData);
                 if (validationError) return showToast(validationError, 'error');
@@ -759,23 +1085,23 @@
                     await loadCustomers();
                     hideAllModals();
                     showToast('Customer updated successfully!', 'success');
-                    await loadAgendaSummary(); // Refresh AI summary
+                    await loadAgendaSummary();
                 } catch (error) {
                     if (error.message !== 'Unauthorized') showToast(error.message, 'error');
                 }
             }
             async function handleSendEmail() {
                 const optionalMessage = document.getElementById('optional-message').value;
-                const language = document.getElementById('email-language').value; 
+                const language = document.getElementById('email-language').value;  
                 if (!selectedCustomerId) return;
                 const originalText = modalConfirmBtn.innerHTML;
                 modalConfirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Sending...';
                 modalConfirmBtn.disabled = true;
                 try {
-                    const response = await fetch(`${API_URL}/customers/${selectedCustomerId}/remind`, { 
-                        method: 'POST', headers: { 'Content-Type': 'application/json' }, 
-                        body: JSON.stringify({ message: optionalMessage, language: language }), 
-                        credentials: 'include' 
+                    const response = await fetch(`${API_URL}/customers/${selectedCustomerId}/remind`, {  
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },  
+                        body: JSON.stringify({ message: optionalMessage, language: language }),  
+                        credentials: 'include'  
                     });
                     if (!response.ok) throw await checkAuth(response);
                     const result = await response.json();
@@ -791,14 +1117,14 @@
             async function handleConfirmDelete() {
                 if (!selectedCustomerId) return;
                 try {
-                    const response = await fetch(`${API_URL}/customers/${selectedCustomerId}`, { 
-                        method: 'DELETE', credentials: 'include' 
+                    const response = await fetch(`${API_URL}/customers/${selectedCustomerId}`, {  
+                        method: 'DELETE', credentials: 'include'  
                     });
                     if (!response.ok) throw await checkAuth(response);
                     await loadCustomers();
                     hideAllModals();
                     showToast('Customer deleted.', 'success');
-                    await loadAgendaSummary(); // Refresh AI summary
+                    await loadAgendaSummary();
                 } catch (error) {
                     if (error.message !== 'Unauthorized') showToast(error.message, 'error');
                 }
@@ -809,8 +1135,8 @@
                 completeConfirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Completing...';
                 completeConfirmBtn.disabled = true;
                 try {
-                    const response = await fetch(`${API_URL}/customers/${selectedCustomerId}/complete`, { 
-                        method: 'POST', credentials: 'include' 
+                    const response = await fetch(`${API_URL}/customers/${selectedCustomerId}/complete`, {  
+                        method: 'POST', credentials: 'include'  
                     });
                     if (!response.ok) throw await checkAuth(response);
                     const { message, customer: updatedCustomer } = await response.json();
@@ -824,12 +1150,125 @@
                     updateStats();
                     hideAllModals();
                     showToast(message || 'Job marked complete!', 'success');
-                    await loadAgendaSummary(); // Refresh AI summary
+                    await loadAgendaSummary();
                 } catch (error) {
                     if (error.message !== 'Unauthorized') showToast(error.message, 'error');
                 } finally {
                     completeConfirmBtn.innerHTML = originalText;
                     completeConfirmBtn.disabled = false;
+                }
+            }
+            
+            // --- EXPORT FUNCTIONS ---
+            function downloadCSV(csv, filename) {
+                const csvFile = new Blob([csv], { type: 'text/csv' });
+                const downloadLink = document.createElement('a');
+                downloadLink.download = filename;
+                downloadLink.href = window.URL.createObjectURL(csvFile);
+                downloadLink.style.display = 'none';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            }
+
+            function exportToCSV() {
+                const headers = ['ID', 'Name', 'Email', 'Address', 'Price', 'PriceType', 'Recurring', 'PaymentStatus', 'WorkStatus', 'NextVisit', 'VisitTime', 'LastPayment', 'Notes'];
+                const dataToExport = filteredCustomers.length > 0 ? filteredCustomers : customers;
+                
+                let csvContent = headers.join(',') + '\n';
+                dataToExport.forEach(customer => {
+                    const row = [
+                        customer.id,
+                        `"${customer.name || ''}"`,
+                        `"${customer.email || ''}"`,
+                        `"${(customer.address || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`,
+                        customer.price || 0,
+                        customer.priceType || 'Fixed',
+                        customer.recurring || 'None',
+                        customer.paymentStatus || 'N/A',
+                        customer.workStatus || 'N/A',
+                        customer.nextVisit || '',
+                        customer.visitTime || '',
+                        customer.lastPayment || '',
+                        `"${(customer.notes || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`
+                    ];
+                    csvContent += row.join(',') + '\n';
+                });
+                
+                downloadCSV(csvContent, `customers_${APP_TODAY}.csv`);
+                showToast('CSV export generated!', 'success');
+            }
+
+            // PDF Export Function
+            async function exportToPDF() {
+                const desktopBtn = document.getElementById('export-pdf');
+                const mobileBtn = document.getElementById('mobile-export-pdf');
+                
+                if (desktopBtn.disabled || mobileBtn.disabled) return;
+                
+                const dataToExport = filteredCustomers.length > 0 ? filteredCustomers : customers;
+                if (dataToExport.length === 0) {
+                    showToast('No customers to export', 'error');
+                    return;
+                }
+                
+                showToast('Generating PDF... this may take a moment.', 'info');
+                
+                desktopBtn.disabled = true;
+                desktopBtn.classList.add('loading');
+                mobileBtn.disabled = true;
+                mobileBtn.classList.add('loading');
+                
+                const customerIds = dataToExport.map(c => c.id);
+                const filterInfo = getActiveFilterInfo();
+                
+                try {
+                    const response = await fetch(`${API_URL}/export/pdf`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            ids: customerIds,
+                            filterInfo: filterInfo 
+                        }),
+                        credentials: 'include'
+                    });
+                
+                    if (!response.ok) {
+                        const error = await checkAuth(response);
+                        throw error;
+                    }
+                
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/pdf')) {
+                        throw new Error('Server returned non-PDF response');
+                    }
+                
+                    const blob = await response.blob();
+                    
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = `customers_${APP_TODAY}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    
+                    setTimeout(() => {
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(downloadUrl);
+                    }, 100);
+                
+                    showToast('PDF download started!', 'success');
+                
+                } catch (error) {
+                    console.error('Error generating PDF:', error);
+                    if (error.message !== 'Unauthorized') {
+                        showToast(`Error generating PDF: ${error.message}`, 'error');
+                    }
+                } finally {
+                    desktopBtn.disabled = false;
+                    desktopBtn.classList.remove('loading');
+                    mobileBtn.disabled = false;
+                    mobileBtn.classList.remove('loading');
                 }
             }
 
@@ -841,29 +1280,39 @@
             openAddModalBtn.addEventListener('click', openAddModal);
             completeConfirmBtn.addEventListener('click', handleConfirmComplete);
             logoutBtn.addEventListener('click', () => {
-                // You would typically have a POST request to a logout endpoint
-                // For this example, we'll just redirect.
                 showToast('Logging out...', 'info');
                 setTimeout(() => window.location.href = '/logout', 1000);
             });
             
             allModalCloseBtns.forEach(btn => btn.addEventListener('click', hideAllModals));
             allModalCancelBtns.forEach(btn => btn.addEventListener('click', hideAllModals));
-            deleteCancelBtn.addEventListener('click', hideAllModals); 
-            searchInput.addEventListener('input', filterCustomers);
+            deleteCancelBtn.addEventListener('click', hideAllModals);  
             
-            // Close modal on background click
+            // Use debounce for search input
+            searchInput.addEventListener('input', debounce(filterCustomers, 300));
+            
+            exportCsvBtn.addEventListener('click', exportToCSV);
+            exportPdfBtn.addEventListener('click', exportToPDF);
+            
+            document.getElementById('mobile-export-csv').addEventListener('click', exportToCSV);
+            document.getElementById('mobile-export-pdf').addEventListener('click', exportToPDF);
+            
+            ['date-from', 'date-to', 'price-min', 'price-max'].forEach(id => {
+                document.getElementById(id).addEventListener('input', filterCustomers);
+            });
+
             [addCustomerModal, reminderModal, viewDetailsModal, editCustomerModal, deleteConfirmModal, completeJobModal].forEach(modal => {
-                modal.addEventListener('click', (event) => { 
-                    if (event.target === modal) hideAllModals(); 
+                modal.addEventListener('click', (event) => {  
+                    if (event.target === modal) hideAllModals();  
                 });
             });
 
             // --- INITIALIZATION ---
-            initSegmentedControls(); 
-            initFilterChips(); 
-            loadCustomers(); 
-            loadAgendaSummary(); 
+            initSegmentedControls();  
+            initFilterChips();  
+            loadCustomers();  
+            loadAgendaSummary();  
+            preloadCriticalData(); // Call preload function
         });
     </script>
 </body>
