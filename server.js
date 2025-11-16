@@ -40,7 +40,11 @@ async function connectToDb() {
 // Define the "Schema"
 const customerSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  email: { type: String, required: true },
+  
+  // START CHANGE 1: Made email optional
+  email: String,
+  // END CHANGE 1
+
   address: String,
   price: Number,
   priceType: { type: String, default: 'Fixed' },
@@ -567,6 +571,12 @@ apiRouter.post('/customers/:id/remind', async (req, res) => {
     const customer = await Customer.findById(id);
     
     if (!customer) return res.status(404).json({ message: 'Customer not found' });
+
+    // START CHANGE 2: Add check for missing email
+    if (!customer.email) {
+      return res.status(400).json({ message: 'This customer has no email address on file.' });
+    }
+    // END CHANGE 2
 
     // --- Helper Functions ---
     const formatDate = (dateString, lang = 'en-US') => {
