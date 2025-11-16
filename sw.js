@@ -1,22 +1,19 @@
-// sw.js
-const CACHE_NAME = 'customer-mgmt-v1.3';
-const STATIC_CACHE = 'static-v1.2';
-const DYNAMIC_CACHE = 'dynamic-v1.1';
+const CACHE_NAME = 'ajk-crm-v3';
+const STATIC_CACHE = 'static-v3';
+const DYNAMIC_CACHE = 'dynamic-v3';
 
-// Assets to cache during install
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/login.html',
   '/manifest.json',
   '/icons/logo-192.png',
   '/icons/logo-512.png',
   'https://cdn.tailwindcss.com',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
-// Install event - cache static assets
+// Install - Cache static assets
 self.addEventListener('install', (event) => {
   console.log('Service Worker installing');
   event.waitUntil(
@@ -29,16 +26,16 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate event - cleanup old caches
+// Activate - Clean up old caches
 self.addEventListener('activate', (event) => {
   console.log('Service Worker activating');
   event.waitUntil(
-    caches.keys().then(cacheNames => {
+    caches.keys().then(keys => {
       return Promise.all(
-        cacheNames.map(cache => {
-          if (cache !== STATIC_CACHE && cache !== DYNAMIC_CACHE && cache !== CACHE_NAME) {
-            console.log('Deleting old cache:', cache);
-            return caches.delete(cache);
+        keys.map(key => {
+          if (key !== STATIC_CACHE && key !== DYNAMIC_CACHE) {
+            console.log('Deleting old cache:', key);
+            return caches.delete(key);
           }
         })
       );
@@ -46,45 +43,67 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - network first, fallback to cache
+// Fetch - Network first with cache fallback for API, Cache first for static
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests and API calls
-  if (event.request.method !== 'GET' || event.request.url.includes('/api/')) {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // API requests - Network first
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          // Cache successful API responses
+          if (response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(DYNAMIC_CACHE)
+              .then(cache => cache.put(request, responseClone));
+          }
+          return response;
+        })
+        .catch(() => {
+          // Fallback to cache when offline
+          return caches.match(request)
+            .then(cachedResponse => {
+              if (cachedResponse) {
+                return cachedResponse;
+              }
+              // Return offline page for HTML requests
+              if (request.headers.get('accept').includes('text/html')) {
+                return caches.match('/offline.html');
+              }
+              return new Response('Network error happened', {
+                status: 408,
+                headers: { 'Content-Type': 'text/plain' }
+              });
+            });
+        })
+    );
     return;
   }
 
+  // Static assets - Cache first
   event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        // Cache successful responses
-        if (response.status === 200) {
-          const responseClone = response.clone();
-          caches.open(DYNAMIC_CACHE)
-            .then(cache => cache.put(event.request, responseClone));
+    caches.match(request)
+      .then(cachedResponse => {
+        if (cachedResponse) {
+          return cachedResponse;
         }
-        return response;
-      })
-      .catch(() => {
-        // Fallback to cache when offline
-        return caches.match(event.request)
-          .then(cachedResponse => {
-            if (cachedResponse) {
-              return cachedResponse;
+        return fetch(request)
+          .then(response => {
+            // Cache new requests
+            if (response.status === 200) {
+              const responseClone = response.clone();
+              caches.open(STATIC_CACHE)
+                .then(cache => cache.put(request, responseClone));
             }
-            // Fallback for navigation requests
-            if (event.request.destination === 'document') {
-              return caches.match('/');
-            }
-            return new Response('Offline - No cached content available', {
-              status: 503,
-              statusText: 'Service Unavailable'
-            });
+            return response;
           });
       })
   );
 });
 
-// Background sync for failed API requests
+// Background sync for failed requests
 self.addEventListener('sync', (event) => {
   if (event.tag === 'background-sync') {
     console.log('Background sync triggered');

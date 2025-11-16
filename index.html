@@ -77,26 +77,45 @@
         .export-btn.loading { position:relative; color:transparent; }
         .export-btn.loading::after { content:''; position:absolute; width:16px; height:16px; top:50%; left:50%; margin:-8px 0 0 -8px; border:2px solid transparent; border-top:2px solid #2563EB; border-radius:50%; animation:spin 1s linear infinite; }
         @keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
+
+        /* Skeleton loader animation */
+        .animate-pulse { animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
     </style>
 
     <script>
-        // Service Worker Registration & Update
+        // Enhanced PWA Service Worker Registration
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                .then(reg => {
-                    console.log('SW registered: ', reg);
-                    reg.addEventListener('updatefound', () => {
-                        const newWorker = reg.installing;
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('/sw.js');
+                    console.log('SW registered: ', registration);
+                    
+                    // Check for updates
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        console.log('New service worker found:', newWorker.state);
+                        
                         newWorker.addEventListener('statechange', () => {
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                                 showUpdateNotification();
                             }
                         });
                     });
-                }).catch(err => console.log('SW registration failed: ', err));
+                    
+                    // Periodic update checks (every 6 hours)
+                    setInterval(() => {
+                        console.log('Checking for SW update...');
+                        registration.update();
+                    }, 6 * 60 * 60 * 1000);
+                    
+                } catch (error) {
+                    console.error('SW registration failed:', error);
+                }
             });
-
             navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
         }
 
@@ -304,11 +323,6 @@
                 
                 <div id="customer-card-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                     
-                    <div id="loading-spinner" class="hidden col-span-full text-center py-12">
-                        <i class="fas fa-spinner fa-spin text-blue-500 text-4xl"></i>
-                        <p class="text-gray-500 mt-2">Loading customers...</p>
-                    </div>
-
                     <div id="no-customers-msg" class="hidden col-span-full text-center py-12">
                         <i class="fas fa-users text-gray-300 text-5xl mb-4"></i>
                         <h3 class="text-xl font-medium text-gray-500 mb-2">No customers found</h3>
@@ -332,14 +346,15 @@
             </div>
             <form id="add-customer-form" class="flex-grow flex flex-col overflow-hidden">
                 <div class="p-6 space-y-4 flex-grow overflow-y-auto custom-scrollbar">
-                    <div><label for="name" class="block text-sm font-medium text-gray-600">Name</label><input type="text" id="name" name="name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
                     
+                    <div><label for="name" class="block text-sm font-medium text-gray-600">Name</label><input type="text" id="name" name="name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
                     <div><label for="email" class="block text-sm font-medium text-gray-600">Email</label><input type="email" id="email" name="email" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
                     <div><label for="address" class="block text-sm font-medium text-gray-600">Address</label><textarea id="address" name="address" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 123 Main St, Apt 4B, 12345 City"></textarea></div>
                     <div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label for="price" class="block text-sm font-medium text-gray-600">Service Price (€)</label><input type="number" id="price" name="price" min="0" step="0.01" placeholder="e.g., 150.00" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label class="block text-sm font-medium text-gray-600">Price Type</label><input type="hidden" name="price-type" id="add-price-type" value="Fixed"><div class="segmented-control mt-1" data-control-group-for="add-price-type"><button type="button" class="segmented-control-btn active" data-value="Fixed">Fixed</button><button type="button" class="segmented-control-btn" data-value="Hourly">Hourly</button></div></div></div>
                     <div><label class="block text-sm font-medium text-gray-600">Recurring</label><input type="hidden" name="recurring" id="add-recurring" value="None"><div class="segmented-control mt-1" data-control-group-for="add-recurring"><button type="button" class="segmented-control-btn active" data-value="None">None</button><button type="button" class="segmented-control-btn" data-value="Weekly">Weekly</button><button type="button" class="segmented-control-btn" data-value="Bi-weekly">Bi-weekly</button><button type="button" class="segmented-control-btn" data-value="Monthly">Monthly</button></div></div>
                     <div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label class="block text-sm font-medium text-gray-600">Payment Status</label><input type="hidden" name="payment-status" id="add-payment-status" value="Pending"><div class="segmented-control mt-1" data-control-group-for="add-payment-status"><button type="button" class="segmented-control-btn active" data-value="Pending">Pending</button><button type="button" class="segmented-control-btn" data-value="Paid">Paid</button><button type="button" class="segmented-control-btn" data-value="Overdue">Overdue</button></div></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label class="block text-sm font-medium text-gray-600">Work Status</label><input type="hidden" name="work-status" id="add-work-status" value="Pending"><div class="segmented-control mt-1" data-control-group-for="add-work-status"><button type="button" class="segmented-control-btn active" data-value="Pending">Pending</button><button type="button" class="segmented-control-btn" data-value="Completed">Completed</button><button type="button" class="segmented-control-btn" data-value="Postponed">Postponed</button></div></div></div>
                     <div class="flex flex-col sm:flex-row sm:space-x-4">
+                        
                         <div class="w-full sm:w-1/2"><label for="next-visit" class="block text-sm font-medium text-gray-600">Next Visit Date</label><input type="date" id="next-visit" name="next-visit" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
                         <div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label for="next-visit-time" class="block text-sm font-medium text-gray-600">Visit Time</label><input type="time" id="next-visit-time" name="next-visit-time" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
                     </div>
@@ -409,23 +424,23 @@
     </div>
 
     <div id="edit-customer-modal" class="hidden fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black bg-opacity-60" role="dialog" aria-modal="true">
-        
         <div class="bg-white w-full md:max-w-lg md:rounded-lg rounded-t-2xl max-h-[90vh] flex flex-col modal-sheet-content">
-        <div class="relative flex justify-between items-center p-5 border-b border-gray-200 flex-shrink-0">
+            <div class="relative flex justify-between items-center p-5 border-b border-gray-200 flex-shrink-0">
                 <div class="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-gray-300 rounded-full md:hidden"></div>
                 <h3 class="text-xl font-semibold text-gray-800 flex items-center"><i class="fas fa-edit text-blue-500 mr-2"></i>Edit Customer</h3>
                 <button class="modal-close-btn text-gray-400 hover:text-gray-600" aria-label="Close modal"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
             <form id="edit-customer-form" class="flex-grow flex flex-col overflow-hidden">
                 <div class="p-6 space-y-4 flex-grow overflow-y-auto custom-scrollbar">
-                    <div><label for="edit-name" class="block text-sm font-medium text-gray-600">Name</label><input type="text" id="edit-name" name="name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
                     
+                    <div><label for="edit-name" class="block text-sm font-medium text-gray-600">Name</label><input type="text" id="edit-name" name="name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
                     <div><label for="edit-email" class="block text-sm font-medium text-gray-600">Email</label><input type="email" id="edit-email" name="email" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
                     <div><label for="edit-address" class="block text-sm font-medium text-gray-600">Address</label><textarea id="edit-address" name="address" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea></div>
                     <div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label for="edit-price" class="block text-sm font-medium text-gray-600">Service Price (€)</label><input type="number" id="edit-price" name="price" min="0" step="0.01" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label class="block text-sm font-medium text-gray-600">Price Type</label><input type="hidden" name="price-type" id="edit-price-type"><div class="segmented-control mt-1" data-control-group-for="edit-price-type"><button type="button" class="segmented-control-btn" data-value="Fixed">Fixed</button><button type="button" class="segmented-control-btn" data-value="Hourly">Hourly</button></div></div></div>
                     <div><label class="block text-sm font-medium text-gray-600">Recurring</label><input type="hidden" name="recurring" id="edit-recurring"><div class="segmented-control mt-1" data-control-group-for="edit-recurring"><button type="button" class="segmented-control-btn" data-value="None">None</button><button type="button" class="segmented-control-btn" data-value="Weekly">Weekly</button><button type="button" class="segmented-control-btn" data-value="Bi-weekly">Bi-weekly</button><button type="button" class="segmented-control-btn" data-value="Monthly">Monthly</button></div></div>
                     <div class="flex flex-col sm:flex-row sm:space-x-4"><div class="w-full sm:w-1/2"><label class="block text-sm font-medium text-gray-600">Payment Status</label><input type="hidden" name="payment-status" id="edit-payment-status"><div class="segmented-control mt-1" data-control-group-for="edit-payment-status"><button type="button" class="segmented-control-btn" data-value="Pending">Pending</button><button type="button" class="segmented-control-btn" data-value="Paid">Paid</button><button type="button" class="segmented-control-btn" data-value="Overdue">Overdue</button></div></div><div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label class="block text-sm font-medium text-gray-600">Work Status</label><input type="hidden" name="work-status" id="edit-work-status"><div class="segmented-control mt-1" data-control-group-for="edit-work-status"><button type="button" class="segmented-control-btn" data-value="Pending">Pending</button><button type="button" class="segmented-control-btn" data-value="Completed">Completed</button><button type="button" class="segmented-control-btn" data-value="Postponed">Postponed</button></div></div></div>
                     <div class="flex flex-col sm:flex-row sm:space-x-4">
+                        
                         <div class="w-full sm:w-1/2"><label for="edit-next-visit" class="block text-sm font-medium text-gray-600">Next Visit Date</label><input type="date" id="edit-next-visit" name="next-visit" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
                         <div class="w-full sm:w-1/2 mt-4 sm:mt-0"><label for="edit-next-visit-time" class="block text-sm font-medium text-gray-600">Visit Time</label><input type="time" id="edit-next-visit-time" name="next-visit-time" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></div>
                     </div>
@@ -460,17 +475,24 @@
             const APP_TODAY = new Date().toISOString().split('T')[0];
             const API_URL = '/api';
 
+            // START: IMPROVEMENT 3 (Cache Versioning)
+            const CACHE_VERSION = 'v2';
+            const CACHE_KEYS = {
+                CUSTOMERS: `customers-${CACHE_VERSION}`
+            };
+            // END: IMPROVEMENT 3
+
             // --- STATE ---
             let customers = [];
             let selectedCustomerId = null;
             let filteredCustomers = [];
             let activePaymentFilter = 'all';
             let activeWorkFilter = 'all';
+            let searchTimeout;
 
             // --- DOM Elements ---
             const cardGrid = document.getElementById('customer-card-grid');
             const noCustomersMsg = document.getElementById('no-customers-msg');
-            const loadingSpinner = document.getElementById('loading-spinner');
             const toast = document.getElementById('toast-notification');
             const toastMessage = document.getElementById('toast-message');
             const toastIcon = document.getElementById('toast-icon');
@@ -509,26 +531,27 @@
             const allModalCloseBtns = document.querySelectorAll('.modal-close-btn');
             const allModalCancelBtns = document.querySelectorAll('.modal-cancel-btn');
 
-            // --- AUTH CHECK HELPER ---
-            async function checkAuth(response) {
-                if (response.status === 401) {
-                    showToast('Session expired. Please log in again.', 'error');
-                    setTimeout(() => window.location.href = '/login', 2000);
-                    return new Error('Unauthorized');
-                }
-                try {
-                    // Try to parse JSON error message from server
-                    const contentType = response.headers.get('content-type');
-                    if (contentType && contentType.includes('application/json')) {
-                        const errorData = await response.json();
-                        return new Error(errorData.message || `Server error: ${response.status}`);
+            
+            // START: IMPROVEMENT 6 (Performance Monitor)
+            const performanceMonitor = {
+                startTime: null,
+                start: function() {
+                    this.startTime = performance.now();
+                },
+                end: function(operation) {
+                    if (this.startTime) {
+                        const duration = performance.now() - this.startTime;
+                        console.log(`${operation} took ${duration.toFixed(2)}ms`);
+                        
+                        // Log slow operations
+                        if (duration > 1000) {
+                            console.warn(`Slow operation detected: ${operation} (${duration.toFixed(2)}ms)`);
+                        }
+                        this.startTime = null; // Reset for next operation
                     }
-                    // Fallback for non-JSON errors
-                    return new Error(`Server error: ${response.status}`);
-                } catch (e) {
-                    return new Error(`Server error: ${response.status}`);
                 }
             }
+            // END: IMPROVEMENT 6
             
             // --- HELPER FUNCTIONS ---
             function formatDate(dateString) {
@@ -586,32 +609,73 @@
                     toast.classList.remove('toast-show');  
                 }, 3000);
             }
-            function showLoadingSpinner(show) {
-                if (show) {
-                    cardGrid.innerHTML = '';
-                    loadingSpinner.classList.remove('hidden');
-                    cardGrid.appendChild(loadingSpinner);
-                    noCustomersMsg.classList.add('hidden');
-                } else {
-                    loadingSpinner.classList.add('hidden');
-                    if (cardGrid.contains(loadingSpinner)) {
-                        cardGrid.removeChild(loadingSpinner);
-                    }
-                }
-            }
-            function validateCustomerData(customer) {
-                const today = new Date(APP_TODAY + 'T00:00:00Z').toISOString().split('T')[0];
-                
-                // Email is optional, but if provided, it must be valid.
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (customer.email && !emailRegex.test(customer.email)) {
-                    return 'Error: Please enter a valid email address.';
-                }
 
-                if (customer.nextVisit && customer.nextVisit < today) return 'Error: Next visit date cannot be in the past.';
-                if (customer.lastPayment && customer.lastPayment > today) return 'Error: Last payment date cannot be in the future.';
-                return null;
+            function isDateToday(dateString) {
+                const today = new Date(APP_TODAY + 'T00:00:00Z');
+                const compareDate = new Date(dateString + 'T00:00:00Z');
+                return compareDate.getTime() === today.getTime();
             }
+            function isDateUpcoming(dateString, days = 3) {
+                const today = new Date(APP_TODAY + 'T00:00:00Z');
+                const visitDate = new Date(dateString + 'T00:00:00Z');
+                const diffTime = visitDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return diffDays >= 0 && diffDays <= days;
+            }
+
+            function renderSkeletonCards(count = 8) {
+                cardGrid.innerHTML = '';
+                noCustomersMsg.classList.add('hidden');
+                for (let i = 0; i < count; i++) {
+                    const skeleton = document.createElement('div');
+                    skeleton.className = 'customer-card bg-white rounded-lg shadow-sm p-5 animate-pulse';
+                    skeleton.innerHTML = `
+                        <div class="space-y-3">
+                            <div class="h-6 bg-gray-200 rounded w-3/4"></div>
+                            <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+                            <div class="pt-4 space-y-2">
+                                <div class="h-4 bg-gray-200 rounded"></div>
+                                <div class="h-4 bg-gray-200 rounded"></div>
+                                <div class="h-4 bg-gray-200 rounded"></div>
+                                <div class="h-4 bg-gray-200 rounded"></div>
+                            </div>
+                            <div class="h-10 bg-gray-200 rounded mt-6"></div>
+                            <div class="h-10 bg-gray-200 rounded"></div>
+                        </div>
+                    `;
+                    cardGrid.appendChild(skeleton);
+                }
+            }
+
+            function validateCustomerData(customer) {
+                const errors = [];
+                
+                // Required fields
+                if (!customer.name?.trim()) errors.push('Name is required');
+                if (!customer.nextVisit) errors.push('Next visit date is required');
+                
+                // Email validation (if provided)
+                if (customer.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)) {
+                    errors.push('Please enter a valid email address');
+                }
+                
+                // Date validation
+                const today = new Date(APP_TODAY + 'T00:00:00Z').toISOString().split('T')[0];
+                if (customer.nextVisit && customer.nextVisit < today) {
+                    errors.push('Next visit date cannot be in the past');
+                }
+                if (customer.lastPayment && customer.lastPayment > today) {
+                    errors.push('Last payment date cannot be in the future');
+                }
+                
+                // Price validation
+                if (customer.price && customer.price < 0) {
+                    errors.push('Price cannot be negative');
+                }
+                
+                return errors.length > 0 ? errors.join('; ') : null;
+            }
+
             function updateStats() {
                 totalCustomers.textContent = customers.length;
                 completedJobs.textContent = customers.filter(c => c.workStatus === 'Completed').length;
@@ -643,7 +707,6 @@
                 upcomingVisits.textContent = visits;
             }
 
-            // Enhanced Filter Info Function
             function getActiveFilterInfo() {
                 let filters = [];
                 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -800,55 +863,114 @@
                 });
             }
 
-            // --- PERFORMANCE OPTIMIZATIONS (from snippet) ---
-            
-            // Debounce search input
-            function debounce(func, wait) {
-                let timeout;
-                return function executedFunction(...args) {
-                    const later = () => {
-                        clearTimeout(timeout);
-                        func(...args);
-                    };
-                    clearTimeout(timeout);
-                    timeout = setTimeout(later, wait);
-                };
-            }
+            // START: IMPROVEMENT 2 (apiCall with Retry)
+            async function apiCall(endpoint, options = {}, expectsJson = true, retries = 2) {
+                for (let attempt = 0; attempt <= retries; attempt++) {
+                    try {
+                        const response = await fetch(`${API_URL}${endpoint}`, {
+                            credentials: 'include',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                ...options.headers,
+                            },
+                            ...options,
+                        });
 
-            // Preload critical data
-            function preloadCriticalData() {
-                if ('connection' in navigator) {
-                    if (navigator.connection.saveData) {
-                        // Don't preload on data-saver mode
-                        return;
+                        if (response.status === 401) {
+                            showToast('Session expired. Please log in again.', 'error');
+                            setTimeout(() => window.location.href = '/login', 2000);
+                            throw new Error('Unauthorized');
+                        }
+
+                        if (!response.ok) {
+                            const error = await response.json().catch(() => ({ message: `Server error: ${response.status}` }));
+                            throw new Error(error.message);
+                        }
+                        
+                        if (expectsJson) {
+                            return await response.json();
+                        }
+                        return response; // Return the whole response for blobs, etc.
+
+                    } catch (error) {
+                        if (attempt === retries || error.message === 'Unauthorized') {
+                            if (error.message !== 'Unauthorized') {
+                                console.error(`API call failed: ${endpoint}`, error);
+                            }
+                            throw error; // Re-throw to be caught by the calling function
+                        }
+                        
+                        // Wait before retry (exponential backoff)
+                        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+                        console.log(`Retrying API call (${attempt + 1}/${retries})...`);
                     }
                 }
-                
-                // Preload upcoming visits data
-                fetch(`${API_URL}/customers?limit=5&sort=nextVisit`)
-                    .then(response => {
-                        if (!response.ok) return; // Don't throw error, just fail silently
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data) {
-                            // Store in session storage for quick access
-                            sessionStorage.setItem('preloadedCustomers', JSON.stringify(data));
-                        }
-                    })
-                    .catch(console.error); // Log error but don't disrupt app
+            }
+            // END: IMPROVEMENT 2
+
+            // START: IMPROVEMENT 3 (Enhanced Caching)
+            async function cacheCustomers() {
+                if ('caches' in window) {
+                    try {
+                        const cache = await caches.open(CACHE_KEYS.CUSTOMERS);
+                        // Use the data we already have instead of re-fetching
+                        const response = new Response(JSON.stringify({
+                            data: customers,
+                            timestamp: Date.now(),
+                            version: CACHE_VERSION
+                        }));
+                        await cache.put(`${API_URL}/customers`, response);
+                        console.log('Customers cached successfully.');
+                        
+                        // Clean up old caches
+                        await cleanupOldCaches();
+                    } catch (error) {
+                        console.log('Cache update failed:', error);
+                    }
+                }
             }
 
+            async function getCachedCustomers() {
+                if ('caches' in window) {
+                    try {
+                        const cache = await caches.open(CACHE_KEYS.CUSTOMERS);
+                        const response = await cache.match(`${API_URL}/customers`);
+                        if (response) {
+                            const cached = await response.json();
+                            // Check if cache version matches
+                            if (cached.version === CACHE_VERSION && cached.data) {
+                                console.log('Loaded customers from cache.');
+                                return cached.data;
+                            } else {
+                                console.log('Cache version mismatch or data invalid, ignoring cache.');
+                                await caches.delete(CACHE_KEYS.CUSTOMERS); // Delete bad cache
+                            }
+                        }
+                    } catch (error) {
+                        console.log('Cache read failed:', error);
+                    }
+                }
+                return null;
+            }
+
+            async function cleanupOldCaches() {
+                const cacheNames = await caches.keys();
+                const oldCaches = cacheNames.filter(name => 
+                    name.startsWith('customers-') && name !== CACHE_KEYS.CUSTOMERS
+                );
+                
+                await Promise.all(oldCaches.map(name => caches.delete(name)));
+                if (oldCaches.length > 0) {
+                    console.log('Cleaned up old caches:', oldCaches);
+                }
+            }
+            // END: IMPROVEMENT 3
 
             // --- CORE FUNCTIONS (API) ---
 
             async function loadAgendaSummary() {
                 try {
-                    const response = await fetch(`${API_URL}/agenda-summary`, { credentials: 'include' });
-                    if (!response.ok) {
-                        throw await checkAuth(response);
-                    }
-                    const data = await response.json();
+                    const data = await apiCall('/agenda-summary');
                     smartAgendaText.textContent = data.summary;
                 } catch (error) {
                     console.error("Error loading agenda summary:", error);
@@ -860,26 +982,34 @@
             }
 
             async function loadCustomers() {
-                showLoadingSpinner(true); 
+                performanceMonitor.start(); // START: IMPROVEMENT 6
+                renderSkeletonCards(); // Show skeletons
                 try {
-                    const response = await fetch(`${API_URL}/customers`, { credentials: 'include' });
-                    if (!response.ok) throw await checkAuth(response);
-                    customers = await response.json();
-                    filterCustomers();
-                    updateStats();
+                    customers = await apiCall('/customers');
+                    await cacheCustomers(); // Cache the fresh data
                 } catch (error) {
-                    console.error(error);
-                    if (error.message !== 'Unauthorized') {
-                        showToast(error.message, 'error');
+                    console.warn('API call failed, checking cache...', error.message);
+                    if (!navigator.onLine) {
+                        showToast('You are offline. Loading cached data...', 'info');
+                        customers = await getCachedCustomers();
+                        if (!customers) {
+                            customers = [];
+                            showToast('No cached data found.', 'error');
+                        }
+                    } else {
+                        // Online, but API failed for another reason
+                        if (error.message !== 'Unauthorized') showToast(error.message, 'error');
+                        customers = []; // Don't show stale data if online and API failed
                     }
                 } finally {
-                    showLoadingSpinner(false);
+                    filterCustomers(); // This calls renderCards
+                    updateStats();
+                    performanceMonitor.end('loadCustomers'); // END: IMPROVEMENT 6
                 }
             }
 
             function renderCards() {
-                showLoadingSpinner(false);
-                cardGrid.innerHTML = '';
+                cardGrid.innerHTML = ''; // Clear skeletons
                 if (filteredCustomers.length === 0) {
                     noCustomersMsg.classList.remove('hidden');
                     cardGrid.appendChild(noCustomersMsg);
@@ -899,12 +1029,9 @@
                     const card = document.createElement('div');
                     card.className = 'customer-card bg-white rounded-lg shadow-md p-5 flex flex-col justify-between';
                     const recurringBadge = customer.recurring !== 'None' ? `<span class="text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">${customer.recurring}</span>` : '';
-                    const nextVisitDate = new Date(customer.nextVisit + 'T00:00:00Z');
-                    const today = new Date(APP_TODAY + 'T00:00:00Z');
-                    const daysUntilVisit = Math.ceil((nextVisitDate - today) / (1000 * 60 * 60 * 24));
-                    const isUpcoming = daysUntilVisit <= 3 && daysUntilVisit >= 0;
                     
-                    // START CHANGE 4: Updated button logic
+                    const isUpcoming = isDateUpcoming(customer.nextVisit, 3);
+                    
                     let completeButton = '';
                     if (customer.workStatus === 'Pending') {
                         completeButton = `<button data-id="${customer.id}" class="complete-job-btn w-full mb-3 px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-md shadow-md hover:bg-green-700 transition duration-200 flex items-center justify-center"><i class="fas fa-check-circle mr-2"></i>Mark as Completed</button>`;
@@ -916,7 +1043,6 @@
                     } else {
                         reminderButton = `<button class="w-full mb-3 px-4 py-2 bg-gray-200 text-gray-500 text-sm font-semibold rounded-md cursor-not-allowed" disabled><i class="fas fa-envelope-slash mr-2"></i>No email provided</button>`;
                     }
-                    // END CHANGE 4
 
                     card.innerHTML = `
                         <div>
@@ -944,6 +1070,7 @@
             }
 
             function attachCardButtonListeners() {
+                // Event delegation is cleaner, but this works fine since renderCards is called
                 document.querySelectorAll('.complete-job-btn').forEach(btn => btn.addEventListener('click', (e) => openCompleteJobModal(e.target.closest('button').dataset.id)));
                 document.querySelectorAll('.send-reminder-btn').forEach(btn => btn.addEventListener('click', (e) => openReminderModal(e.target.closest('button').dataset.id)));
                 document.querySelectorAll('.view-details-btn').forEach(btn => btn.addEventListener('click', (e) => openViewModal(e.target.closest('button').dataset.id)));
@@ -956,7 +1083,7 @@
                 const formData = new FormData(addForm);
                 const newCustomerData = {
                     name: formData.get('name'), 
-                    email: formData.get('email') || null, // Allow null email
+                    email: formData.get('email') || null,
                     address: formData.get('address') || null, 
                     price: parseFloat(formData.get('price')) || null, priceType: formData.get('price-type'),
                     recurring: formData.get('recurring'), paymentStatus: formData.get('payment-status'),
@@ -966,15 +1093,16 @@
                     lastPayment: formData.get('last-payment') || null,
                     notes: formData.get('notes') || null
                 };
+
                 const validationError = validateCustomerData(newCustomerData);
                 if (validationError) return showToast(validationError, 'error');
+                
                 try {
-                    const response = await fetch(`${API_URL}/customers`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(newCustomerData), credentials: 'include'
+                    await apiCall('/customers', {
+                        method: 'POST',
+                        body: JSON.stringify(newCustomerData)
                     });
-                    if (!response.ok) throw await checkAuth(response);
-                    await loadCustomers();
+                    await loadCustomers(); // This will re-fetch and re-cache
                     addForm.reset();
                     resetSegmentedControls(addForm);
                     hideAllModals();  
@@ -991,14 +1119,14 @@
                 setDefaultVisitDate();
                 addCustomerModal.classList.remove('hidden');
             }
+
             function openReminderModal(id) {
                 selectedCustomerId = id;
                 const customer = customers.find(c => c.id === selectedCustomerId);
                 if (!customer) return;
-                
-                // This function should only be callable if email exists, but we check anyway.
-                if (!customer.email) {
-                    showToast("This customer does not have an email address.", "error");
+
+                if (!customer.email || customer.email.trim() === '') {
+                    showToast("This customer doesn't have an email address.", "error");
                     return;
                 }
 
@@ -1065,7 +1193,7 @@
                 const formData = new FormData(editForm);
                 const updatedCustomerData = {
                     name: formData.get('name'), 
-                    email: formData.get('email') || null, // Allow null email
+                    email: formData.get('email') || null,
                     address: formData.get('address') || null, 
                     price: parseFloat(formData.get('price')) || null, priceType: formData.get('price-type'),
                     recurring: formData.get('recurring'), paymentStatus: formData.get('payment-status'),
@@ -1075,15 +1203,16 @@
                     lastPayment: formData.get('last-payment') || null,
                     notes: formData.get('notes') || null
                 };
+                
                 const validationError = validateCustomerData(updatedCustomerData);
                 if (validationError) return showToast(validationError, 'error');
+
                 try {
-                    const response = await fetch(`${API_URL}/customers/${selectedCustomerId}`, {
-                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(updatedCustomerData), credentials: 'include'
+                    await apiCall(`/customers/${selectedCustomerId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(updatedCustomerData)
                     });
-                    if (!response.ok) throw await checkAuth(response);
-                    await loadCustomers();
+                    await loadCustomers(); // Re-fetches and re-caches
                     hideAllModals();
                     showToast('Customer updated successfully!', 'success');
                     await loadAgendaSummary();
@@ -1095,17 +1224,16 @@
                 const optionalMessage = document.getElementById('optional-message').value;
                 const language = document.getElementById('email-language').value;  
                 if (!selectedCustomerId) return;
+                
                 const originalText = modalConfirmBtn.innerHTML;
                 modalConfirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Sending...';
                 modalConfirmBtn.disabled = true;
+                
                 try {
-                    const response = await fetch(`${API_URL}/customers/${selectedCustomerId}/remind`, {  
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },  
-                        body: JSON.stringify({ message: optionalMessage, language: language }),  
-                        credentials: 'include'  
+                    const result = await apiCall(`/customers/${selectedCustomerId}/remind`, {
+                        method: 'POST',
+                        body: JSON.stringify({ message: optionalMessage, language: language })
                     });
-                    if (!response.ok) throw await checkAuth(response);
-                    const result = await response.json();
                     hideAllModals();
                     showToast(result.message || 'Email sent successfully!', 'success');
                 } catch (error) {
@@ -1118,11 +1246,8 @@
             async function handleConfirmDelete() {
                 if (!selectedCustomerId) return;
                 try {
-                    const response = await fetch(`${API_URL}/customers/${selectedCustomerId}`, {  
-                        method: 'DELETE', credentials: 'include'  
-                    });
-                    if (!response.ok) throw await checkAuth(response);
-                    await loadCustomers();
+                    await apiCall(`/customers/${selectedCustomerId}`, { method: 'DELETE' });
+                    await loadCustomers(); // Re-fetches and re-caches
                     hideAllModals();
                     showToast('Customer deleted.', 'success');
                     await loadAgendaSummary();
@@ -1132,25 +1257,16 @@
             }
             async function handleConfirmComplete() {
                 if (!selectedCustomerId) return;
+                
                 const originalText = completeConfirmBtn.innerHTML;
                 completeConfirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Completing...';
                 completeConfirmBtn.disabled = true;
+                
                 try {
-                    const response = await fetch(`${API_URL}/customers/${selectedCustomerId}/complete`, {  
-                        method: 'POST', credentials: 'include'  
-                    });
-                    if (!response.ok) throw await checkAuth(response);
-                    const { message, customer: updatedCustomer } = await response.json();
-                    const index = customers.findIndex(c => c.id === updatedCustomer.id);
-                    if (index !== -1) {
-                        customers[index] = updatedCustomer;
-                    } else {
-                        customers.push(updatedCustomer);
-                    }
-                    filterCustomers();
-                    updateStats();
+                    await apiCall(`/customers/${selectedCustomerId}/complete`, { method: 'POST' });
+                    await loadCustomers(); // Re-fetches and re-caches
                     hideAllModals();
-                    showToast(message || 'Job marked complete!', 'success');
+                    showToast('Job marked complete!', 'success');
                     await loadAgendaSummary();
                 } catch (error) {
                     if (error.message !== 'Unauthorized') showToast(error.message, 'error');
@@ -1200,7 +1316,6 @@
                 showToast('CSV export generated!', 'success');
             }
 
-            // PDF Export Function
             async function exportToPDF() {
                 const desktopBtn = document.getElementById('export-pdf');
                 const mobileBtn = document.getElementById('mobile-export-pdf');
@@ -1224,20 +1339,13 @@
                 const filterInfo = getActiveFilterInfo();
                 
                 try {
-                    const response = await fetch(`${API_URL}/export/pdf`, {
+                    const response = await apiCall('/export/pdf', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
                             ids: customerIds,
                             filterInfo: filterInfo 
                         }),
-                        credentials: 'include'
-                    });
-                
-                    if (!response.ok) {
-                        const error = await checkAuth(response);
-                        throw error;
-                    }
+                    }, false); // false = don't parse as JSON
                 
                     const contentType = response.headers.get('content-type');
                     if (!contentType || !contentType.includes('application/pdf')) {
@@ -1289,8 +1397,20 @@
             allModalCancelBtns.forEach(btn => btn.addEventListener('click', hideAllModals));
             deleteCancelBtn.addEventListener('click', hideAllModals);  
             
-            // Use debounce for search input
-            searchInput.addEventListener('input', debounce(filterCustomers, 300));
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                const term = e.target.value;
+                
+                // Show loading for longer searches
+                if (term.length > 2) {
+                    cardGrid.style.opacity = '0.7';
+                }
+                
+                searchTimeout = setTimeout(() => {
+                    filterCustomers();
+                    cardGrid.style.opacity = '1';
+                }, term.length > 2 ? 300 : 150);
+            });
             
             exportCsvBtn.addEventListener('click', exportToCSV);
             exportPdfBtn.addEventListener('click', exportToPDF);
@@ -1313,7 +1433,6 @@
             initFilterChips();  
             loadCustomers();  
             loadAgendaSummary();  
-            preloadCriticalData(); // Call preload function
         });
     </script>
 </body>
